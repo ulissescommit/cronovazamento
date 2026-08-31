@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, repositorio
 from ..db import obter_sessao
+from .catalogo import encontrar_ou_criar_origem
 
 router = APIRouter(prefix="/amostras", tags=["amostras"])
 templates = Jinja2Templates(directory="webapp/templates")
@@ -45,6 +46,8 @@ def criar(
     nome: str = Form(...),
     delimitador: str = Form(","),
     arquivo: UploadFile = File(...),
+    origem_nome: str = Form(""),
+    origem_fonte: str = Form(""),
     sessao: Session = Depends(obter_sessao),
 ):
     conteudo = arquivo.file.read().decode("utf-8-sig")
@@ -65,6 +68,17 @@ def criar(
 
     for indice, linha in enumerate(linhas):
         sessao.add(models.AmostraLinha(amostra_id=amostra.id, indice=indice, dados=dict(linha)))
+
+    if origem_nome.strip():
+        entrada = encontrar_ou_criar_origem(
+            sessao,
+            nome=origem_nome.strip(),
+            campos=colunas,
+            fonte_suspeita=origem_fonte.strip() or None,
+        )
+        amostra.origem_catalogo_id = entrada.id
+        sessao.add(amostra)
+
     sessao.commit()
 
     return RedirectResponse(f"/amostras/{amostra.id}", status_code=303)

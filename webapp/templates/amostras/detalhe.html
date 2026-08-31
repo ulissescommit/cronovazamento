@@ -5,6 +5,9 @@
 <p class="subtitulo">
   {{ amostra.colunas|length }} coluna(s) · {{ n_linhas }} linha(s) ·
   enviada em {{ amostra.criado_em.strftime("%d/%m/%Y %H:%M") }}
+  {% if amostra.origem_catalogo %}
+  · origem declarada: <a href="/catalogo">{{ amostra.origem_catalogo.nome }}</a>
+  {% endif %}
 </p>
 
 <h2>Colunas detectadas</h2>

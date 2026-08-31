@@ -16,11 +16,17 @@ class Amostra(Base):
     arquivo_original: Mapped[str] = mapped_column(String(255))
     delimitador: Mapped[str] = mapped_column(String(4), default=",")
     colunas: Mapped[list] = mapped_column(JSON)
+    # quando a amostra foi enviada pra dentro da ferramenta — serve como
+    # registro de "quando essa amostra foi mandada"
     criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # origem declarada manualmente por quem sobe a amostra (opcional) —
+    # aponta pra entrada do catálogo criada/reaproveitada nesse envio
+    origem_catalogo_id: Mapped[int | None] = mapped_column(ForeignKey("vazamentos_catalogo.id"), default=None)
 
     linhas: Mapped[list["AmostraLinha"]] = relationship(back_populates="amostra", cascade="all, delete-orphan")
     mapeamentos: Mapped[list["Mapeamento"]] = relationship(back_populates="amostra", cascade="all, delete-orphan")
     analises: Mapped[list["Analise"]] = relationship(back_populates="amostra", cascade="all, delete-orphan")
+    origem_catalogo: Mapped["VazamentoCatalogo | None"] = relationship(foreign_keys=[origem_catalogo_id])
 
 
 class AmostraLinha(Base):

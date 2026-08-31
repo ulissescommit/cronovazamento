@@ -21,6 +21,19 @@
   <label for="arquivo">Arquivo CSV</label>
   <input type="file" id="arquivo" name="arquivo" accept=".csv,text/csv" required>
 
+  <fieldset>
+    <legend>Origem conhecida (opcional)</legend>
+    <p class="subtitulo" style="margin:0 0 0.4rem;">
+      Se você já sabe de onde essa amostra veio, diga aqui — ela entra (ou soma
+      campos numa entrada já existente com o mesmo nome) no catálogo de
+      origens automaticamente, sem precisar cadastrar à parte depois.
+    </p>
+    <label for="origem_nome">Nome da origem</label>
+    <input type="text" id="origem_nome" name="origem_nome" placeholder="ex.: Loja X — vazamento 2024">
+    <label for="origem_fonte">Detalhe da fonte (opcional)</label>
+    <input type="text" id="origem_fonte" name="origem_fonte" placeholder="ex.: confirmado pelo próprio remetente">
+  </fieldset>
+
   <button type="submit">Enviar</button>
 </form>
 {% endblock %}

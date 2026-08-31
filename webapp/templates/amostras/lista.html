@@ -8,12 +8,12 @@
 
 {% if amostras %}
 <table>
-  <thead><tr><th>Nome</th><th>Arquivo</th><th>Colunas</th><th>Linhas</th><th>Enviada em</th><th></th></tr></thead>
+  <thead><tr><th>Nome</th><th>Origem declarada</th><th>Colunas</th><th>Linhas</th><th>Enviada em</th><th></th></tr></thead>
   <tbody>
     {% for a in amostras %}
     <tr>
       <td>{{ a.nome }}</td>
-      <td class="mono">{{ a.arquivo_original }}</td>
+      <td>{{ a.origem_catalogo.nome if a.origem_catalogo else "—" }}</td>
       <td>{{ a.colunas|length }}</td>
       <td>{{ a.linhas|length }}</td>
       <td>{{ a.criado_em.strftime("%d/%m/%Y %H:%M") }}</td>

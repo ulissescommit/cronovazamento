@@ -35,13 +35,14 @@
 
 {% if entradas %}
 <table>
-  <thead><tr><th>Nome</th><th>Identificador</th><th>Campos</th><th>Fonte suspeita</th><th></th></tr></thead>
+  <thead><tr><th>Nome</th><th>Identificador</th><th>Campos</th><th>Amostras</th><th>Fonte suspeita</th><th></th></tr></thead>
   <tbody>
     {% for e in entradas %}
     <tr>
       <td>{{ e.nome }}</td>
       <td class="mono">{{ e.identificador }}</td>
       <td>{{ e.campos|length }}</td>
+      <td>{{ n_amostras_por_entrada.get(e.id, 0) }}</td>
       <td>{{ e.fonte_suspeita or "—" }}</td>
       <td>
         <form method="post" action="/catalogo/{{ e.id }}/excluir" style="display:inline;">

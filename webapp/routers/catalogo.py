@@ -19,10 +19,60 @@ def _parse_campos(texto: str) -> list[str]:
     return [p.strip() for p in partes if p.strip()]
 
 
+def _slugificar(texto: str, alternativa: str) -> str:
+    return re.sub(r"[^a-z0-9-]+", "-", texto.lower()).strip("-") or alternativa
+
+
+def encontrar_ou_criar_origem(
+    sessao: Session,
+    nome: str,
+    campos: list[str],
+    fonte_suspeita: str | None = None,
+    observacoes: str | None = None,
+) -> models.VazamentoCatalogo:
+    """Acha a entrada do catálogo com esse nome (por slug) e MESCLA os campos
+    novos nela — assim o catálogo aprende/acumula schema a cada amostra que
+    declara a mesma origem — ou cria uma entrada nova se for a primeira vez.
+    """
+    identificador_base = _slugificar(nome, "origem")
+    existente = (
+        sessao.query(models.VazamentoCatalogo)
+        .filter(models.VazamentoCatalogo.identificador == identificador_base)
+        .first()
+    )
+    if existente:
+        campos_mesclados = list(dict.fromkeys([*existente.campos, *campos]))  # união, preserva ordem
+        existente.campos = campos_mesclados
+        if fonte_suspeita and not existente.fonte_suspeita:
+            existente.fonte_suspeita = fonte_suspeita
+        sessao.add(existente)
+        sessao.commit()
+        sessao.refresh(existente)
+        return existente
+
+    entrada = models.VazamentoCatalogo(
+        identificador=identificador_base,
+        nome=nome,
+        campos=campos,
+        fonte_suspeita=fonte_suspeita,
+        observacoes=observacoes,
+    )
+    sessao.add(entrada)
+    sessao.commit()
+    sessao.refresh(entrada)
+    return entrada
+
+
 @router.get("", response_class=HTMLResponse)
 def listar(request: Request, sessao: Session = Depends(obter_sessao)):
     entradas = sessao.query(models.VazamentoCatalogo).order_by(models.VazamentoCatalogo.criado_em.desc()).all()
-    return templates.TemplateResponse(request, "catalogo/lista.html", {"entradas": entradas})
+    n_amostras_por_entrada = {
+        entrada.id: sessao.query(models.Amostra).filter(models.Amostra.origem_catalogo_id == entrada.id).count()
+        for entrada in entradas
+    }
+    return templates.TemplateResponse(
+        request, "catalogo/lista.html", {"entradas": entradas, "n_amostras_por_entrada": n_amostras_por_entrada}
+    )
 
 
 @router.post("")
@@ -52,22 +102,14 @@ def criar(
 @router.get("/de-amostra/{amostra_id}")
 def de_amostra(amostra_id: int, sessao: Session = Depends(obter_sessao)):
     amostra = sessao.get(models.Amostra, amostra_id)
-    identificador = re.sub(r"[^a-z0-9-]+", "-", amostra.nome.lower()).strip("-") or f"amostra-{amostra_id}"
-    existentes = {e.identificador for e in sessao.query(models.VazamentoCatalogo.identificador).all()}
-    base = identificador
-    contador = 2
-    while identificador in existentes:
-        identificador = f"{base}-{contador}"
-        contador += 1
-
-    sessao.add(
-        models.VazamentoCatalogo(
-            identificador=identificador,
-            nome=amostra.nome,
-            campos=list(amostra.colunas),
-            observacoes=f"Cadastrado automaticamente a partir da amostra #{amostra_id}",
-        )
+    entrada = encontrar_ou_criar_origem(
+        sessao,
+        nome=amostra.nome,
+        campos=list(amostra.colunas),
+        observacoes=f"Cadastrado a partir da amostra #{amostra_id}",
     )
+    amostra.origem_catalogo_id = entrada.id
+    sessao.add(amostra)
     sessao.commit()
     return RedirectResponse("/catalogo", status_code=303)
 
