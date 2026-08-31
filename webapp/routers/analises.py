@@ -101,6 +101,8 @@ def detalhe(request: Request, analise_id: int, sessao: Session = Depends(obter_s
     if analise.limite_inferior and analise.limite_superior:
         dias_de_janela = (analise.limite_superior - analise.limite_inferior).days
 
+    ineditismo = repositorio.calcular_ineditismo(sessao, analise.amostra_id)
+
     return templates.TemplateResponse(
         request,
         "analises/detalhe.html",
@@ -109,5 +111,6 @@ def detalhe(request: Request, analise_id: int, sessao: Session = Depends(obter_s
             "evidencias": evidencias,
             "candidatos": candidatos,
             "dias_de_janela": dias_de_janela,
+            "ineditismo": ineditismo,
         },
     )

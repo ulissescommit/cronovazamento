@@ -8,6 +8,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
+from cronovazamento.deteccao import classificar_amostra
+
 from .. import models, repositorio
 from ..db import obter_sessao
 from ..util import redirecionar
@@ -88,8 +90,8 @@ def criar(
 @router.get("/{amostra_id}", response_class=HTMLResponse)
 def detalhe(request: Request, amostra_id: int, sessao: Session = Depends(obter_sessao)):
     amostra = sessao.get(models.Amostra, amostra_id)
-    n_linhas = sessao.query(models.AmostraLinha).filter(models.AmostraLinha.amostra_id == amostra_id).count()
-    mapeamento = repositorio.carregar_mapeamento(sessao, amostra_id)
+    linhas_db = sessao.query(models.AmostraLinha).filter(models.AmostraLinha.amostra_id == amostra_id).all()
+    mapeamento_salvo = repositorio.carregar_mapeamento(sessao, amostra_id)
     conexoes = sessao.query(models.ConexaoExterna).order_by(models.ConexaoExterna.nome).all()
     verificacoes = (
         sessao.query(models.VerificacaoConexao)
@@ -97,16 +99,23 @@ def detalhe(request: Request, amostra_id: int, sessao: Session = Depends(obter_s
         .order_by(models.VerificacaoConexao.executado_em.desc())
         .all()
     )
+
+    classificacao = classificar_amostra(list(amostra.colunas), [linha.dados for linha in linhas_db])
+    # sugestão só preenche o que ainda não foi salvo manualmente — nunca sobrescreve escolha do usuário
+    mapeamento_exibido = {**classificacao.sugestoes_mapeamento(), **mapeamento_salvo}
+
     return templates.TemplateResponse(
         request,
         "amostras/detalhe.html",
         {
             "amostra": amostra,
-            "n_linhas": n_linhas,
-            "mapeamento": mapeamento,
+            "n_linhas": len(linhas_db),
+            "mapeamento": mapeamento_exibido,
+            "mapeamento_sugerido": not mapeamento_salvo and bool(classificacao.sugestoes_mapeamento()),
             "campos_logicos": CAMPOS_LOGICOS,
             "conexoes": conexoes,
             "verificacoes": verificacoes,
+            "classificacao": classificacao,
         },
     )
 

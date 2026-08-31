@@ -13,8 +13,31 @@
 <h2>Colunas detectadas</h2>
 <p class="mono">{{ amostra.colunas|join(", ") }}</p>
 
+<h2>Tipo de vazamento detectado</h2>
+<p class="subtitulo">
+  Categoria predominante:
+  <span class="badge badge-forte" style="font-size:0.85rem;">{{ classificacao.categoria_predominante }}</span>
+  — baseado no tipo de dado que mais aparece nas colunas, amostrando até 50 valores de cada uma.
+</p>
+<table>
+  <thead><tr><th>Coluna</th><th>Tipo detectado</th><th>Categoria</th><th>Confiança</th></tr></thead>
+  <tbody>
+    {% for r in classificacao.colunas %}
+    <tr>
+      <td class="mono">{{ r.coluna }}</td>
+      <td>{{ r.tipo_predominante }}</td>
+      <td>{{ r.categoria }}</td>
+      <td>{% if r.amostrados %}{{ "%.0f"|format(r.confianca * 100) }}% ({{ r.amostrados }} amostrados){% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
 <h2>Mapeamento de campos</h2>
-<p class="subtitulo">Diga qual coluna da amostra corresponde a cada campo lógico que o motor entende. Deixe em branco o que não se aplica.</p>
+<p class="subtitulo">
+  Diga qual coluna da amostra corresponde a cada campo lógico que o motor entende. Deixe em branco o que não se aplica.
+  {% if mapeamento_sugerido %}Pré-preenchido a partir do tipo de dado detectado — confira antes de salvar.{% endif %}
+</p>
 
 <form method="post" action="amostras/{{ amostra.id }}/mapeamento">
   <div class="grade">

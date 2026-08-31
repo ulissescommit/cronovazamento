@@ -28,6 +28,26 @@
   </p>
 </div>
 
+{% if ineditismo %}
+<h2>Ineditismo (é um vazamento novo?)</h2>
+<div class="card">
+  <p style="font-size:1.3rem; margin:0;">
+    <strong>{{ "%.0f"|format(ineditismo.percentual_inedito) }}%</strong>
+    <span class="subtitulo" style="font-size:0.9rem;">dos valores de <span class="mono">{{ ineditismo.campo_logico }}</span> nunca apareceram em nenhuma amostra anterior</span>
+  </p>
+  <p class="subtitulo" style="margin-top:0.6rem;">
+    {{ ineditismo.ineditos }} inédito(s) de {{ ineditismo.total }} · comparado contra {{ ineditismo.amostras_comparadas }} outra(s) amostra(s) já carregada(s).
+    {% if ineditismo.percentual_inedito >= 70 %}
+      Alto ineditismo — indício de vazamento novo.
+    {% elif ineditismo.percentual_inedito <= 30 %}
+      Baixo ineditismo — boa parte já apareceu antes; pode ser reenvio de um vazamento já conhecido.
+    {% else %}
+      Misto — inconclusivo sozinho, cruze com a origem e a janela temporal.
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+
 <h2>Evidências ({{ evidencias|length }})</h2>
 {% if evidencias %}
 <table>

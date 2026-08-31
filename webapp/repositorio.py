@@ -113,6 +113,54 @@ def salvar_mapeamento(sessao: Session, amostra_id: int, mapeamento: dict[str, st
     sessao.commit()
 
 
+CAMPOS_CHAVE_INEDITISMO = ["cpf", "cnpj", "placa"]
+
+
+def calcular_ineditismo(sessao: Session, amostra_id: int) -> dict | None:
+    """Compara os valores da chave dessa amostra (CPF, CNPJ ou placa — o
+    primeiro que estiver mapeado) contra todas as OUTRAS amostras já
+    carregadas, usando o mapeamento PRÓPRIO de cada uma (a coluna pode ter
+    nome diferente em cada vazamento). Alto percentual inédito é indício de
+    vazamento novo; baixo percentual sugere reenvio de um vazamento já visto.
+    """
+    mapeamento_atual = carregar_mapeamento(sessao, amostra_id)
+    campo_logico = next((c for c in CAMPOS_CHAVE_INEDITISMO if mapeamento_atual.get(c)), None)
+    if not campo_logico:
+        return None
+    coluna_atual = mapeamento_atual[campo_logico]
+
+    linhas_amostra = sessao.query(models.AmostraLinha).filter(models.AmostraLinha.amostra_id == amostra_id).all()
+    valores_amostra = {
+        str(linha.dados[coluna_atual]).strip() for linha in linhas_amostra if linha.dados.get(coluna_atual)
+    }
+    valores_amostra.discard("")
+    if not valores_amostra:
+        return None
+
+    outros_mapeamentos = (
+        sessao.query(models.Mapeamento)
+        .filter(models.Mapeamento.campo_logico == campo_logico, models.Mapeamento.amostra_id != amostra_id)
+        .all()
+    )
+    valores_conhecidos: set[str] = set()
+    for m in outros_mapeamentos:
+        linhas_outra = sessao.query(models.AmostraLinha).filter(models.AmostraLinha.amostra_id == m.amostra_id).all()
+        for linha in linhas_outra:
+            valor = linha.dados.get(m.coluna)
+            if valor:
+                valores_conhecidos.add(str(valor).strip())
+
+    ineditos = valores_amostra - valores_conhecidos
+    total = len(valores_amostra)
+    return {
+        "campo_logico": campo_logico,
+        "total": total,
+        "ineditos": len(ineditos),
+        "percentual_inedito": round(len(ineditos) / total * 100, 1),
+        "amostras_comparadas": len({m.amostra_id for m in outros_mapeamentos}),
+    }
+
+
 def persistir_analise(
     sessao: Session,
     amostra_id: int,
