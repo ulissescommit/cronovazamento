@@ -11,7 +11,7 @@
 
 <div class="card">
   <h3>Nova conexão</h3>
-  <form method="post" action="/conexoes">
+  <form method="post" action="conexoes">
     <div class="grade">
       <div>
         <label for="nome">Nome / apelido</label>
@@ -73,11 +73,11 @@
       <td class="mono">{{ c.host or (c.caminho_arquivo or "—") }}</td>
       <td class="mono">{{ c.banco }}</td>
       <td class="lista-acoes">
-        <a href="/conexoes/{{ c.id }}/tabelas">ver tabelas</a>
-        <form method="post" action="/conexoes/{{ c.id }}/testar" style="display:inline;">
+        <a href="conexoes/{{ c.id }}/tabelas">ver tabelas</a>
+        <form method="post" action="conexoes/{{ c.id }}/testar" style="display:inline;">
           <button type="submit" class="secundario" style="padding:0.25rem 0.6rem;font-size:0.78rem;">testar</button>
         </form>
-        <form method="post" action="/conexoes/{{ c.id }}/excluir" style="display:inline;">
+        <form method="post" action="conexoes/{{ c.id }}/excluir" style="display:inline;">
           <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
         </form>
       </td>

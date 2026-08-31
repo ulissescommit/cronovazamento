@@ -4,20 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}cronovazamento{% endblock %}</title>
-  <link rel="stylesheet" href="/static/estilo.css">
-  <script src="/static/htmx.min.js"></script>
+  {# quando servido atrás de um proxy com prefixo de caminho (ex.: /HEX/), o Caddy manda
+     X-Forwarded-Prefix e todo link relativo do resto da página passa a resolver contra
+     essa base — sem isso, links e o CSS "vazam" pra fora do prefixo #}
+  <base href="{{ request.headers.get('x-forwarded-prefix', '') }}/">
+  <link rel="stylesheet" href="static/estilo.css">
+  <script src="static/htmx.min.js"></script>
 </head>
 <body>
   <div class="topo">
     <span class="marca">cronovazamento</span>
     <nav>
-      <a href="/">painel</a>
-      <a href="/amostras">amostras</a>
-      <a href="/eventos/pessoa">eventos</a>
-      <a href="/catalogo">catálogo</a>
-      <a href="/conexoes">conexões</a>
-      <a href="/analises">análises</a>
-      <a href="/verificacoes">verificações</a>
+      <a href=".">painel</a>
+      <a href="amostras">amostras</a>
+      <a href="eventos/pessoa">eventos</a>
+      <a href="catalogo">catálogo</a>
+      <a href="conexoes">conexões</a>
+      <a href="analises">análises</a>
+      <a href="verificacoes">verificações</a>
     </nav>
   </div>
   <main>

@@ -17,7 +17,7 @@
         {% if not an.consistente %}<span class="badge badge-conflito">conflito</span>{% endif %}
       </td>
       <td>{{ an.executado_em.strftime("%d/%m/%Y %H:%M") }}</td>
-      <td><a href="/analises/{{ an.id }}">abrir</a></td>
+      <td><a href="analises/{{ an.id }}">abrir</a></td>
     </tr>
     {% endfor %}
   </tbody>

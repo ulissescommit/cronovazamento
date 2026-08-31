@@ -6,7 +6,7 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .db import criar_tabelas, obter_sessao
 from .routers import amostras, analises, catalogo, conexoes, eventos, verificacoes
+from .util import redirecionar
 
 DIR_RAIZ = Path(__file__).resolve().parent.parent
 DIR_EXEMPLOS_AMOSTRAS = DIR_RAIZ / "data" / "amostras"
@@ -65,7 +66,7 @@ def painel(request: Request, sessao: Session = Depends(obter_sessao)):
 
 
 @app.post("/exemplos/importar")
-def importar_exemplos(sessao: Session = Depends(obter_sessao)):
+def importar_exemplos(request: Request, sessao: Session = Depends(obter_sessao)):
     """Carrega os dados sintéticos de data/*.exemplo.* no banco, só para dar
     uma volta rápida na ferramenta sem preencher formulário manualmente."""
     caminho_amostra = DIR_EXEMPLOS_AMOSTRAS / "amostra.exemplo.csv"
@@ -126,4 +127,4 @@ def importar_exemplos(sessao: Session = Depends(obter_sessao)):
                 )
 
     sessao.commit()
-    return RedirectResponse("/", status_code=303)
+    return redirecionar(request, "/")

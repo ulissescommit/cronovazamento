@@ -3,12 +3,13 @@ from __future__ import annotations
 import re
 
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import obter_sessao
+from ..util import redirecionar
 
 router = APIRouter(prefix="/catalogo", tags=["catalogo"])
 templates = Jinja2Templates(directory="webapp/templates")
@@ -77,6 +78,7 @@ def listar(request: Request, sessao: Session = Depends(obter_sessao)):
 
 @router.post("")
 def criar(
+    request: Request,
     identificador: str = Form(...),
     nome: str = Form(...),
     campos: str = Form(...),
@@ -96,11 +98,11 @@ def criar(
         )
     )
     sessao.commit()
-    return RedirectResponse("/catalogo", status_code=303)
+    return redirecionar(request, "/catalogo")
 
 
 @router.get("/de-amostra/{amostra_id}")
-def de_amostra(amostra_id: int, sessao: Session = Depends(obter_sessao)):
+def de_amostra(request: Request, amostra_id: int, sessao: Session = Depends(obter_sessao)):
     amostra = sessao.get(models.Amostra, amostra_id)
     entrada = encontrar_ou_criar_origem(
         sessao,
@@ -111,11 +113,11 @@ def de_amostra(amostra_id: int, sessao: Session = Depends(obter_sessao)):
     amostra.origem_catalogo_id = entrada.id
     sessao.add(amostra)
     sessao.commit()
-    return RedirectResponse("/catalogo", status_code=303)
+    return redirecionar(request, "/catalogo")
 
 
 @router.post("/{entrada_id}/excluir")
-def excluir(entrada_id: int, sessao: Session = Depends(obter_sessao)):
+def excluir(request: Request, entrada_id: int, sessao: Session = Depends(obter_sessao)):
     sessao.query(models.VazamentoCatalogo).filter(models.VazamentoCatalogo.id == entrada_id).delete()
     sessao.commit()
-    return RedirectResponse("/catalogo", status_code=303)
+    return redirecionar(request, "/catalogo")

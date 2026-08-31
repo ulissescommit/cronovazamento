@@ -7,11 +7,11 @@
 {% if not mapeamento %}
 <div class="aviso">
   Essa amostra ainda não tem mapeamento de campos salvo — a análise pode não
-  gerar nenhuma evidência de registro. <a href="/amostras/{{ amostra.id }}">configurar mapeamento</a>.
+  gerar nenhuma evidência de registro. <a href="amostras/{{ amostra.id }}">configurar mapeamento</a>.
 </div>
 {% endif %}
 
-<form method="post" action="/analises">
+<form method="post" action="analises">
   <input type="hidden" name="amostra_id" value="{{ amostra.id }}">
 
   <fieldset>

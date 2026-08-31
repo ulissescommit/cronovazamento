@@ -5,14 +5,14 @@
 <p class="subtitulo">Transferências de propriedade (DETRAN): placa mudou de dono.</p>
 
 <nav style="margin-bottom:1rem;">
-  <a class="botao secundario" href="/eventos/pessoa">pessoa</a>
-  <a class="botao secundario" href="/eventos/empresa">empresa</a>
-  <a class="botao secundario" href="/eventos/veiculo">veículo</a>
+  <a class="botao secundario" href="eventos/pessoa">pessoa</a>
+  <a class="botao secundario" href="eventos/empresa">empresa</a>
+  <a class="botao secundario" href="eventos/veiculo">veículo</a>
 </nav>
 
 <div class="card">
   <h3>Adicionar evento</h3>
-  <form method="post" action="/eventos/veiculo">
+  <form method="post" action="eventos/veiculo">
     <div class="grade">
       <div>
         <label for="placa">Placa</label>
@@ -54,7 +54,7 @@
       <td>{{ e.proprietario_anterior }} &rarr; {{ e.proprietario_novo }}</td>
       <td>{{ e.forca or "—" }}</td>
       <td>
-        <form method="post" action="/eventos/veiculo/{{ e.id }}/excluir" style="display:inline;">
+        <form method="post" action="eventos/veiculo/{{ e.id }}/excluir" style="display:inline;">
           <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
         </form>
       </td>

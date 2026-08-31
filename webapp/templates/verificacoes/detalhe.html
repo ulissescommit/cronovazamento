@@ -3,7 +3,7 @@
 {% block conteudo %}
 <h1>Verificação #{{ verificacao.id }}</h1>
 <p class="subtitulo">
-  Amostra <a href="/amostras/{{ verificacao.amostra.id }}">{{ verificacao.amostra.nome }}</a> ·
+  Amostra <a href="amostras/{{ verificacao.amostra.id }}">{{ verificacao.amostra.nome }}</a> ·
   banco <strong>{{ verificacao.conexao.nome }}</strong> · tabela <span class="mono">{{ verificacao.tabela }}</span> ·
   {{ verificacao.executado_em.strftime("%d/%m/%Y %H:%M") }}
 </p>

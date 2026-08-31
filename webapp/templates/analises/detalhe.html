@@ -3,7 +3,7 @@
 {% block conteudo %}
 <h1>Análise #{{ analise.id }}</h1>
 <p class="subtitulo">
-  Amostra <a href="/amostras/{{ analise.amostra.id }}">{{ analise.amostra.nome }}</a> ·
+  Amostra <a href="amostras/{{ analise.amostra.id }}">{{ analise.amostra.nome }}</a> ·
   executada em {{ analise.executado_em.strftime("%d/%m/%Y %H:%M") }}
 </p>
 

@@ -11,12 +11,12 @@
 {% elif not campos_chave_disponiveis %}
 <div class="aviso">
   Essa amostra não tem nenhum campo-chave (CPF/CNPJ/placa) mapeado ainda —
-  <a href="/amostras/{{ amostra.id }}">configure o mapeamento primeiro</a>.
+  <a href="amostras/{{ amostra.id }}">configure o mapeamento primeiro</a>.
 </div>
 {% elif not tabela_escolhida %}
 <h2>1. Escolha a tabela/coleção candidata</h2>
 {% if tabelas %}
-<form method="get" action="/verificacoes/nova">
+<form method="get" action="verificacoes/nova">
   <input type="hidden" name="amostra_id" value="{{ amostra.id }}">
   <input type="hidden" name="conexao_id" value="{{ conexao.id }}">
   <label for="tabela">Tabela / coleção</label>
@@ -32,7 +32,7 @@
 {% endif %}
 {% else %}
 <h2>2. Mapeie os campos de "{{ tabela_escolhida }}" e escolha a chave</h2>
-<form method="post" action="/verificacoes">
+<form method="post" action="verificacoes">
   <input type="hidden" name="amostra_id" value="{{ amostra.id }}">
   <input type="hidden" name="conexao_id" value="{{ conexao.id }}">
   <input type="hidden" name="tabela" value="{{ tabela_escolhida }}">

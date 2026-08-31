@@ -17,8 +17,8 @@
     <tr>
       <td class="mono">{{ t }}</td>
       <td class="lista-acoes">
-        <a href="/conexoes/{{ conexao.id }}/tabelas?tabela={{ t }}">ver colunas</a>
-        <a href="/conexoes/{{ conexao.id }}/importar-schema/{{ t }}">cadastrar no catálogo</a>
+        <a href="conexoes/{{ conexao.id }}/tabelas?tabela={{ t }}">ver colunas</a>
+        <a href="conexoes/{{ conexao.id }}/importar-schema/{{ t }}">cadastrar no catálogo</a>
       </td>
     </tr>
     {% endfor %}

@@ -4,12 +4,13 @@ import csv
 import io
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .. import models, repositorio
 from ..db import obter_sessao
+from ..util import redirecionar
 from .catalogo import encontrar_ou_criar_origem
 
 router = APIRouter(prefix="/amostras", tags=["amostras"])
@@ -81,7 +82,7 @@ def criar(
 
     sessao.commit()
 
-    return RedirectResponse(f"/amostras/{amostra.id}", status_code=303)
+    return redirecionar(request, f"/amostras/{amostra.id}")
 
 
 @router.get("/{amostra_id}", response_class=HTMLResponse)
@@ -115,4 +116,4 @@ async def salvar_mapeamento(request: Request, amostra_id: int, sessao: Session =
     dados = await request.form()
     mapeamento = {campo: dados.get(campo, "") for campo, _ in CAMPOS_LOGICOS}
     repositorio.salvar_mapeamento(sessao, amostra_id, mapeamento)
-    return RedirectResponse(f"/amostras/{amostra_id}", status_code=303)
+    return redirecionar(request, f"/amostras/{amostra_id}")

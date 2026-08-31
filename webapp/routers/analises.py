@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,7 @@ from cronovazamento.proximidade import listar_algoritmos_conjunto, listar_algori
 
 from .. import models, repositorio
 from ..db import obter_sessao
+from ..util import redirecionar
 
 router = APIRouter(prefix="/analises", tags=["analises"])
 templates = Jinja2Templates(directory="webapp/templates")
@@ -71,7 +72,7 @@ async def criar(request: Request, sessao: Session = Depends(obter_sessao)):
         sessao, amostra_id, relatorio, algoritmos_origem_efetivos, algoritmos_registro, limiar_fuzzy
     )
 
-    return RedirectResponse(f"/analises/{analise.id}", status_code=303)
+    return redirecionar(request, f"/analises/{analise.id}")
 
 
 @router.get("/{analise_id}", response_class=HTMLResponse)

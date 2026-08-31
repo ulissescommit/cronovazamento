@@ -4,7 +4,7 @@
 <h1>Amostras</h1>
 <p class="subtitulo">Amostras de vazamento carregadas para análise.</p>
 
-<a class="botao" href="/amostras/nova">+ subir amostra</a>
+<a class="botao" href="amostras/nova">+ subir amostra</a>
 
 {% if amostras %}
 <table>
@@ -18,8 +18,8 @@
       <td>{{ a.linhas|length }}</td>
       <td>{{ a.criado_em.strftime("%d/%m/%Y %H:%M") }}</td>
       <td class="lista-acoes">
-        <a href="/amostras/{{ a.id }}">abrir</a>
-        <a href="/analises/nova?amostra_id={{ a.id }}">analisar</a>
+        <a href="amostras/{{ a.id }}">abrir</a>
+        <a href="analises/nova?amostra_id={{ a.id }}">analisar</a>
       </td>
     </tr>
     {% endfor %}

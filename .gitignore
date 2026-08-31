@@ -5,8 +5,8 @@ __pycache__/
 *.db
 .env
 
-# artefato gerado, não faz parte do código-fonte
-cronovazamento_projeto.pdf
+# artefatos gerados (documentos/apresentações), não fazem parte do código-fonte
+/*.pdf
 
 # amostras e referências reais NUNCA devem ir para controle de versão —
 # só os arquivos *.exemplo.* (sintéticos) em data/ são seguros para commitar.

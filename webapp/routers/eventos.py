@@ -3,12 +3,13 @@ from __future__ import annotations
 from datetime import date
 
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import obter_sessao
+from ..util import redirecionar
 
 router = APIRouter(prefix="/eventos", tags=["eventos"])
 templates = Jinja2Templates(directory="webapp/templates")
@@ -22,6 +23,7 @@ def listar_pessoa(request: Request, sessao: Session = Depends(obter_sessao)):
 
 @router.post("/pessoa")
 def criar_pessoa(
+    request: Request,
     cpf: str = Form(...),
     tipo: str = Form(...),
     data: date = Form(...),
@@ -41,14 +43,14 @@ def criar_pessoa(
         )
     )
     sessao.commit()
-    return RedirectResponse("/eventos/pessoa", status_code=303)
+    return redirecionar(request, "/eventos/pessoa")
 
 
 @router.post("/pessoa/{evento_id}/excluir")
-def excluir_pessoa(evento_id: int, sessao: Session = Depends(obter_sessao)):
+def excluir_pessoa(request: Request, evento_id: int, sessao: Session = Depends(obter_sessao)):
     sessao.query(models.EventoPessoa).filter(models.EventoPessoa.id == evento_id).delete()
     sessao.commit()
-    return RedirectResponse("/eventos/pessoa", status_code=303)
+    return redirecionar(request, "/eventos/pessoa")
 
 
 @router.get("/empresa", response_class=HTMLResponse)
@@ -59,6 +61,7 @@ def listar_empresa(request: Request, sessao: Session = Depends(obter_sessao)):
 
 @router.post("/empresa")
 def criar_empresa(
+    request: Request,
     cnpj: str = Form(...),
     data: date = Form(...),
     socio: str = Form(...),
@@ -78,14 +81,14 @@ def criar_empresa(
         )
     )
     sessao.commit()
-    return RedirectResponse("/eventos/empresa", status_code=303)
+    return redirecionar(request, "/eventos/empresa")
 
 
 @router.post("/empresa/{evento_id}/excluir")
-def excluir_empresa(evento_id: int, sessao: Session = Depends(obter_sessao)):
+def excluir_empresa(request: Request, evento_id: int, sessao: Session = Depends(obter_sessao)):
     sessao.query(models.EventoEmpresa).filter(models.EventoEmpresa.id == evento_id).delete()
     sessao.commit()
-    return RedirectResponse("/eventos/empresa", status_code=303)
+    return redirecionar(request, "/eventos/empresa")
 
 
 @router.get("/veiculo", response_class=HTMLResponse)
@@ -96,6 +99,7 @@ def listar_veiculo(request: Request, sessao: Session = Depends(obter_sessao)):
 
 @router.post("/veiculo")
 def criar_veiculo(
+    request: Request,
     placa: str = Form(...),
     data: date = Form(...),
     proprietario_anterior: str = Form(""),
@@ -113,11 +117,11 @@ def criar_veiculo(
         )
     )
     sessao.commit()
-    return RedirectResponse("/eventos/veiculo", status_code=303)
+    return redirecionar(request, "/eventos/veiculo")
 
 
 @router.post("/veiculo/{evento_id}/excluir")
-def excluir_veiculo(evento_id: int, sessao: Session = Depends(obter_sessao)):
+def excluir_veiculo(request: Request, evento_id: int, sessao: Session = Depends(obter_sessao)):
     sessao.query(models.EventoVeiculo).filter(models.EventoVeiculo.id == evento_id).delete()
     sessao.commit()
-    return RedirectResponse("/eventos/veiculo", status_code=303)
+    return redirecionar(request, "/eventos/veiculo")

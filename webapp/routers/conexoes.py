@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,7 @@ from cronovazamento.conectores import testar_conexao as testar_conexao_motor
 
 from .. import cifra, models
 from ..db import obter_sessao
+from ..util import redirecionar
 from .catalogo import encontrar_ou_criar_origem
 
 router = APIRouter(prefix="/conexoes", tags=["conexoes"])
@@ -39,6 +40,7 @@ def listar(request: Request, sessao: Session = Depends(obter_sessao)):
 
 @router.post("")
 def criar(
+    request: Request,
     nome: str = Form(...),
     motor: str = Form(...),
     host: str = Form(""),
@@ -62,14 +64,14 @@ def criar(
         )
     )
     sessao.commit()
-    return RedirectResponse("/conexoes", status_code=303)
+    return redirecionar(request, "/conexoes")
 
 
 @router.post("/{conexao_id}/excluir")
-def excluir(conexao_id: int, sessao: Session = Depends(obter_sessao)):
+def excluir(request: Request, conexao_id: int, sessao: Session = Depends(obter_sessao)):
     sessao.query(models.ConexaoExterna).filter(models.ConexaoExterna.id == conexao_id).delete()
     sessao.commit()
-    return RedirectResponse("/conexoes", status_code=303)
+    return redirecionar(request, "/conexoes")
 
 
 @router.get("/{conexao_id}/tabelas", response_class=HTMLResponse)
@@ -115,7 +117,7 @@ def testar(request: Request, conexao_id: int, sessao: Session = Depends(obter_se
 
 
 @router.get("/{conexao_id}/importar-schema/{tabela}")
-def importar_schema(conexao_id: int, tabela: str, sessao: Session = Depends(obter_sessao)):
+def importar_schema(request: Request, conexao_id: int, tabela: str, sessao: Session = Depends(obter_sessao)):
     conexao = sessao.get(models.ConexaoExterna, conexao_id)
     colunas = listar_colunas(info_de(conexao), tabela)
     encontrar_ou_criar_origem(
@@ -125,4 +127,4 @@ def importar_schema(conexao_id: int, tabela: str, sessao: Session = Depends(obte
         fonte_suspeita=conexao.nome,
         observacoes=f"Schema importado direto da conexão '{conexao.nome}', tabela/coleção '{tabela}'",
     )
-    return RedirectResponse("/catalogo", status_code=303)
+    return redirecionar(request, "/catalogo")

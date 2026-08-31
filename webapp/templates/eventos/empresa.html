@@ -5,14 +5,14 @@
 <p class="subtitulo">Alterações de quadro societário: sócio entrou/saiu, participação mudou.</p>
 
 <nav style="margin-bottom:1rem;">
-  <a class="botao secundario" href="/eventos/pessoa">pessoa</a>
-  <a class="botao secundario" href="/eventos/empresa">empresa</a>
-  <a class="botao secundario" href="/eventos/veiculo">veículo</a>
+  <a class="botao secundario" href="eventos/pessoa">pessoa</a>
+  <a class="botao secundario" href="eventos/empresa">empresa</a>
+  <a class="botao secundario" href="eventos/veiculo">veículo</a>
 </nav>
 
 <div class="card">
   <h3>Adicionar evento</h3>
-  <form method="post" action="/eventos/empresa">
+  <form method="post" action="eventos/empresa">
     <div class="grade">
       <div>
         <label for="cnpj">CNPJ</label>
@@ -63,7 +63,7 @@
       <td>{{ e.participacao_nova if e.participacao_nova is not none else "—" }}</td>
       <td>{{ e.forca or "—" }}</td>
       <td>
-        <form method="post" action="/eventos/empresa/{{ e.id }}/excluir" style="display:inline;">
+        <form method="post" action="eventos/empresa/{{ e.id }}/excluir" style="display:inline;">
           <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
         </form>
       </td>

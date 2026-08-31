@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,7 @@ from cronovazamento.verificacao import verificar
 
 from .. import models, repositorio
 from ..db import obter_sessao
+from ..util import redirecionar
 from .amostras import CAMPOS_LOGICOS
 from .conexoes import info_de
 
@@ -139,7 +140,7 @@ async def criar(request: Request, sessao: Session = Depends(obter_sessao)):
     sessao.commit()
     sessao.refresh(verificacao)
 
-    return RedirectResponse(f"/verificacoes/{verificacao.id}", status_code=303)
+    return redirecionar(request, f"/verificacoes/{verificacao.id}")
 
 
 @router.get("/{verificacao_id}", response_class=HTMLResponse)

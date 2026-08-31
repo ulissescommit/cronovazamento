@@ -6,7 +6,7 @@
 
 <div class="card">
   <h3>Adicionar entrada manualmente</h3>
-  <form method="post" action="/catalogo">
+  <form method="post" action="catalogo">
     <div class="grade">
       <div>
         <label for="identificador">Identificador (slug único)</label>
@@ -45,7 +45,7 @@
       <td>{{ n_amostras_por_entrada.get(e.id, 0) }}</td>
       <td>{{ e.fonte_suspeita or "—" }}</td>
       <td>
-        <form method="post" action="/catalogo/{{ e.id }}/excluir" style="display:inline;">
+        <form method="post" action="catalogo/{{ e.id }}/excluir" style="display:inline;">
           <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
         </form>
       </td>
