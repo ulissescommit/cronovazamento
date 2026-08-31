@@ -21,6 +21,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-cronovazamento}:${POSTGRES_PASSWORD:-cronovazamento}@db:5432/${POSTGRES_DB:-cronovazamento}
+      CRONOVAZAMENTO_CHAVE_CIFRA: ${CRONOVAZAMENTO_CHAVE_CIFRA:?defina CRONOVAZAMENTO_CHAVE_CIFRA no .env}
     ports:
       # só localhost — nunca 0.0.0.0. Dado de vazamento não deve ficar
       # exposto na internet; acesse por túnel SSH quando isso rodar num VPS

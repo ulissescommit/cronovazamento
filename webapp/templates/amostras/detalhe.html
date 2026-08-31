@@ -36,4 +36,40 @@
 <h2>Próximo passo</h2>
 <a class="botao" href="/analises/nova?amostra_id={{ amostra.id }}">rodar análise</a>
 <a class="botao secundario" href="/catalogo/de-amostra/{{ amostra.id }}">cadastrar schema no catálogo</a>
+
+<h2>Verificar contra um banco externo</h2>
+<p class="subtitulo">Confere se os registros dessa amostra existem (e batem campo a campo) num banco candidato à origem do vazamento.</p>
+{% if conexoes %}
+<form method="get" action="/verificacoes/nova">
+  <input type="hidden" name="amostra_id" value="{{ amostra.id }}">
+  <label for="conexao_id">Banco candidato</label>
+  <select id="conexao_id" name="conexao_id" required style="max-width:24rem;">
+    {% for c in conexoes %}
+    <option value="{{ c.id }}">{{ c.nome }} ({{ c.motor }})</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Escolher tabela e verificar</button>
+</form>
+{% else %}
+<p class="vazio">Nenhuma conexão cadastrada ainda. <a href="/conexoes">cadastrar uma</a>.</p>
+{% endif %}
+
+{% if verificacoes %}
+<h3>Verificações já rodadas para essa amostra</h3>
+<table>
+  <thead><tr><th>Conexão</th><th>Tabela</th><th>Encontrados</th><th>Divergentes</th><th>Quando</th><th></th></tr></thead>
+  <tbody>
+    {% for v in verificacoes %}
+    <tr>
+      <td>{{ v.conexao.nome }}</td>
+      <td class="mono">{{ v.tabela }}</td>
+      <td>{{ v.encontrados }}/{{ v.total_linhas }}</td>
+      <td>{{ v.divergentes }}</td>
+      <td>{{ v.executado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+      <td><a href="/verificacoes/{{ v.id }}">abrir</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 {% endblock %}

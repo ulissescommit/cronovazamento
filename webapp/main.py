@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from . import models
 from .db import criar_tabelas, obter_sessao
-from .routers import amostras, analises, catalogo, eventos
+from .routers import amostras, analises, catalogo, conexoes, eventos, verificacoes
 
 DIR_RAIZ = Path(__file__).resolve().parent.parent
 DIR_EXEMPLOS_AMOSTRAS = DIR_RAIZ / "data" / "amostras"
@@ -28,6 +28,8 @@ app.include_router(amostras.router)
 app.include_router(eventos.router)
 app.include_router(catalogo.router)
 app.include_router(analises.router)
+app.include_router(conexoes.router)
+app.include_router(verificacoes.router)
 
 
 @app.on_event("startup")

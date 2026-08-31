@@ -102,6 +102,54 @@ class VazamentoCatalogo(Base):
     criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class ConexaoExterna(Base):
+    """Uma conexão cadastrada com um banco de dados candidato a origem do
+    vazamento — reaproveitável entre 'alimentar catálogo' e 'verificar'."""
+
+    __tablename__ = "conexoes_externas"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nome: Mapped[str] = mapped_column(String(255))
+    motor: Mapped[str] = mapped_column(String(32))  # postgresql | mysql | mariadb | mssql | oracle | sqlite | mongodb
+    host: Mapped[str | None] = mapped_column(String(255), default=None)
+    porta: Mapped[int | None] = mapped_column(default=None)
+    banco: Mapped[str] = mapped_column(String(255))
+    usuario: Mapped[str | None] = mapped_column(String(255), default=None)
+    senha_cifrada: Mapped[str | None] = mapped_column(Text, default=None)
+    caminho_arquivo: Mapped[str | None] = mapped_column(String(500), default=None)  # só sqlite
+    criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    verificacoes: Mapped[list["VerificacaoConexao"]] = relationship(
+        back_populates="conexao", cascade="all, delete-orphan"
+    )
+
+
+class VerificacaoConexao(Base):
+    """Resultado persistido de rodar 'esse vazamento veio dessa base?' contra
+    uma tabela/coleção de uma ConexaoExterna."""
+
+    __tablename__ = "verificacoes_conexao"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    amostra_id: Mapped[int] = mapped_column(ForeignKey("amostras.id"))
+    conexao_id: Mapped[int] = mapped_column(ForeignKey("conexoes_externas.id"))
+    tabela: Mapped[str] = mapped_column(String(255))
+    mapeamento_externo: Mapped[dict] = mapped_column(JSON)
+    campo_chave: Mapped[str] = mapped_column(String(32))
+    algoritmos_string: Mapped[list] = mapped_column(JSON)
+    limiar: Mapped[float] = mapped_column(Float)
+    executado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    total_linhas: Mapped[int] = mapped_column(default=0)
+    encontrados: Mapped[int] = mapped_column(default=0)
+    divergentes: Mapped[int] = mapped_column(default=0)
+    # snapshot serializado dos registros divergentes (chave + campos comparados) — informativo,
+    # não normalizado em tabela própria por não ser um dado consultado além dessa tela
+    registros_divergentes: Mapped[list] = mapped_column(JSON)
+
+    amostra: Mapped[Amostra] = relationship()
+    conexao: Mapped[ConexaoExterna] = relationship(back_populates="verificacoes")
+
+
 class Analise(Base):
     __tablename__ = "analises"
 

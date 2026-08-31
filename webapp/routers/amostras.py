@@ -89,6 +89,13 @@ def detalhe(request: Request, amostra_id: int, sessao: Session = Depends(obter_s
     amostra = sessao.get(models.Amostra, amostra_id)
     n_linhas = sessao.query(models.AmostraLinha).filter(models.AmostraLinha.amostra_id == amostra_id).count()
     mapeamento = repositorio.carregar_mapeamento(sessao, amostra_id)
+    conexoes = sessao.query(models.ConexaoExterna).order_by(models.ConexaoExterna.nome).all()
+    verificacoes = (
+        sessao.query(models.VerificacaoConexao)
+        .filter(models.VerificacaoConexao.amostra_id == amostra_id)
+        .order_by(models.VerificacaoConexao.executado_em.desc())
+        .all()
+    )
     return templates.TemplateResponse(
         request,
         "amostras/detalhe.html",
@@ -97,6 +104,8 @@ def detalhe(request: Request, amostra_id: int, sessao: Session = Depends(obter_s
             "n_linhas": n_linhas,
             "mapeamento": mapeamento,
             "campos_logicos": CAMPOS_LOGICOS,
+            "conexoes": conexoes,
+            "verificacoes": verificacoes,
         },
     )
 

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Verificação #{{ verificacao.id }} — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Verificação #{{ verificacao.id }}</h1>
+<p class="subtitulo">
+  Amostra <a href="/amostras/{{ verificacao.amostra.id }}">{{ verificacao.amostra.nome }}</a> ·
+  banco <strong>{{ verificacao.conexao.nome }}</strong> · tabela <span class="mono">{{ verificacao.tabela }}</span> ·
+  {{ verificacao.executado_em.strftime("%d/%m/%Y %H:%M") }}
+</p>
+
+<div class="grade">
+  <div class="card">
+    <h3>Encontrados na base candidata</h3>
+    <p style="font-size:1.8rem;margin:0.2rem 0;">{{ "%.0f"|format(percentual_encontrado) }}%</p>
+    <p class="subtitulo">{{ verificacao.encontrados }} de {{ verificacao.total_linhas }} registro(s) da amostra</p>
+  </div>
+  <div class="card">
+    <h3>Divergentes (dos encontrados)</h3>
+    <p style="font-size:1.8rem;margin:0.2rem 0;">{{ "%.0f"|format(percentual_divergente) }}%</p>
+    <p class="subtitulo">{{ verificacao.divergentes }} registro(s) com algum campo diferente do banco</p>
+  </div>
+</div>
+
+<p class="subtitulo">
+  Chave: <span class="mono">{{ verificacao.campo_chave }}</span> ·
+  Algoritmos: {{ verificacao.algoritmos_string|join(", ") }} · limiar {{ verificacao.limiar }}
+</p>
+
+{% if verificacao.encontrados == verificacao.total_linhas and verificacao.divergentes == 0 and verificacao.total_linhas > 0 %}
+<div class="aviso" style="background:#e7f2ec;border-color:#2f7d5a;">
+  Todos os registros da amostra foram encontrados nessa base, sem nenhuma divergência de campo — forte indício de que essa é a origem.
+</div>
+{% endif %}
+
+<h2>Registros divergentes</h2>
+{% if verificacao.registros_divergentes %}
+{% for r in verificacao.registros_divergentes %}
+<div class="card">
+  <h3 class="mono">{{ r.chave }}</h3>
+  <table>
+    <thead><tr><th>Campo</th><th>Amostra</th><th>Banco (agora)</th><th>Algoritmo</th><th>Score</th></tr></thead>
+    <tbody>
+      {% for c in r.campos %}
+      <tr>
+        <td>{{ c.campo }}</td>
+        <td>{{ c.valor_amostra }}</td>
+        <td>{{ c.valor_externo }}</td>
+        <td>{{ c.algoritmo }}</td>
+        <td>{{ "%.0f"|format(c.score * 100) }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+{% else %}
+<p class="vazio">Nenhum registro divergente entre os encontrados.</p>
+{% endif %}
+{% endblock %}

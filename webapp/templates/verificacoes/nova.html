@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block titulo %}Nova verificação — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Verificar amostra contra banco externo</h1>
+<p class="subtitulo">
+  Amostra <strong>{{ amostra.nome }}</strong> contra a conexão <strong>{{ conexao.nome }}</strong> ({{ conexao.motor }})
+</p>
+
+{% if erro %}
+<div class="aviso">Não deu pra conectar nesse banco: {{ erro }}</div>
+{% elif not campos_chave_disponiveis %}
+<div class="aviso">
+  Essa amostra não tem nenhum campo-chave (CPF/CNPJ/placa) mapeado ainda —
+  <a href="/amostras/{{ amostra.id }}">configure o mapeamento primeiro</a>.
+</div>
+{% elif not tabela_escolhida %}
+<h2>1. Escolha a tabela/coleção candidata</h2>
+{% if tabelas %}
+<form method="get" action="/verificacoes/nova">
+  <input type="hidden" name="amostra_id" value="{{ amostra.id }}">
+  <input type="hidden" name="conexao_id" value="{{ conexao.id }}">
+  <label for="tabela">Tabela / coleção</label>
+  <select id="tabela" name="tabela" required style="max-width:24rem;">
+    {% for t in tabelas %}
+    <option value="{{ t }}">{{ t }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Continuar</button>
+</form>
+{% else %}
+<p class="vazio">Nenhuma tabela/coleção encontrada nesse banco.</p>
+{% endif %}
+{% else %}
+<h2>2. Mapeie os campos de "{{ tabela_escolhida }}" e escolha a chave</h2>
+<form method="post" action="/verificacoes">
+  <input type="hidden" name="amostra_id" value="{{ amostra.id }}">
+  <input type="hidden" name="conexao_id" value="{{ conexao.id }}">
+  <input type="hidden" name="tabela" value="{{ tabela_escolhida }}">
+
+  <fieldset>
+    <legend>Campo-chave (usado pra buscar o registro correspondente no banco)</legend>
+    {% for campo in campos_chave_disponiveis %}
+    <label class="inline">
+      <input type="radio" name="campo_chave" value="{{ campo }}" required {% if loop.first %}checked{% endif %}>
+      {{ campo }} (amostra: {{ mapeamento_amostra.get(campo) }})
+    </label>
+    {% endfor %}
+  </fieldset>
+
+  <fieldset>
+    <legend>Mapeamento de campos no banco externo</legend>
+    <div class="grade">
+      {% for campo, rotulo in campos_logicos %}
+      <div>
+        <label for="externo_{{ campo }}">{{ rotulo }}</label>
+        <select id="externo_{{ campo }}" name="externo_{{ campo }}">
+          <option value="">— não mapeado —</option>
+          {% for coluna in colunas_externas %}
+          <option value="{{ coluna }}">{{ coluna }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Algoritmos de comparação de campo</legend>
+    {% for alg in algoritmos_string %}
+    <label class="inline">
+      <input type="checkbox" name="algoritmo" value="{{ alg.id }}" {% if alg.id == "exato" %}checked{% endif %}>
+      {{ alg.nome }}
+    </label>
+    {% endfor %}
+    <label for="limiar">Limiar mínimo (0–1)</label>
+    <input type="number" id="limiar" name="limiar" min="0" max="1" step="0.01" value="0.85" style="max-width:8rem;">
+  </fieldset>
+
+  <button type="submit">Rodar verificação</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Verificações — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Histórico de verificações</h1>
+
+{% if verificacoes %}
+<table>
+  <thead><tr><th>Amostra</th><th>Conexão</th><th>Tabela</th><th>Encontrados</th><th>Divergentes</th><th>Quando</th><th></th></tr></thead>
+  <tbody>
+    {% for v in verificacoes %}
+    <tr>
+      <td>{{ v.amostra.nome }}</td>
+      <td>{{ v.conexao.nome }}</td>
+      <td class="mono">{{ v.tabela }}</td>
+      <td>{{ v.encontrados }}/{{ v.total_linhas }}</td>
+      <td>{{ v.divergentes }}</td>
+      <td>{{ v.executado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+      <td><a href="/verificacoes/{{ v.id }}">abrir</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhuma verificação rodada ainda.</p>
+{% endif %}
+{% endblock %}

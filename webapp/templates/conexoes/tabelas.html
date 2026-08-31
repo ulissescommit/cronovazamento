@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}{{ conexao.nome }} — tabelas — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>{{ conexao.nome }}</h1>
+<p class="subtitulo">{{ conexao.motor }} · {{ conexao.host or conexao.caminho_arquivo }} · {{ conexao.banco }}</p>
+
+{% if erro %}
+<div class="aviso">Não deu pra conectar: {{ erro }}</div>
+{% else %}
+
+<h2>Tabelas / coleções</h2>
+{% if tabelas %}
+<table>
+  <thead><tr><th>Nome</th><th></th></tr></thead>
+  <tbody>
+    {% for t in tabelas %}
+    <tr>
+      <td class="mono">{{ t }}</td>
+      <td class="lista-acoes">
+        <a href="/conexoes/{{ conexao.id }}/tabelas?tabela={{ t }}">ver colunas</a>
+        <a href="/conexoes/{{ conexao.id }}/importar-schema/{{ t }}">cadastrar no catálogo</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhuma tabela/coleção encontrada.</p>
+{% endif %}
+
+{% if tabela_escolhida %}
+<h2>Colunas de "{{ tabela_escolhida }}"</h2>
+<p class="mono">{{ colunas|join(", ") }}</p>
+{% endif %}
+{% endif %}
+{% endblock %}

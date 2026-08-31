@@ -13,6 +13,14 @@ web = [
     "psycopg2-binary>=2.9",
     "python-multipart>=0.0.9",
     "jinja2>=3.1",
+    "cryptography>=42",
+]
+# drivers dos motores externos suportados pelo conector (cronovazamento/conectores.py)
+conectores = [
+    "pymysql>=1.1",       # mysql, mariadb
+    "pymssql>=2.3",       # sql server
+    "oracledb>=2.0",      # oracle (modo thin, sem Oracle Instant Client)
+    "pymongo>=4.7",       # mongodb
 ]
 
 [project.scripts]

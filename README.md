@@ -34,19 +34,29 @@ string — um motor de **algoritmos de proximidade estatística**
 (TF-IDF) para schema e Levenshtein/Jaro-Winkler/fonético para nomes, tolerando
 acento, abreviação e erro de digitação comuns em bases vazadas.
 
+Além dos eventos cadastrados à mão, dá pra **conectar direto num banco
+candidato à origem** (`cronovazamento/conectores.py`) — Postgres, MySQL/
+MariaDB, SQL Server, Oracle, SQLite ou MongoDB — pra duas coisas: importar o
+schema de lá como entrada de catálogo, ou **verificar**: buscar os mesmos
+registros da amostra nesse banco pela chave (CPF/CNPJ/placa) e comparar campo
+a campo (mesmos algoritmos de proximidade), mostrando quanto bate e o que
+diverge.
+
 ## Estrutura
 
 ```
-cronovazamento/            # motor puro, sem dependência de web/banco
+cronovazamento/            # motor puro, sem dependência obrigatória de web/banco
   evidencias.py             # tipos Evidencia/Direcao/Forca e o algoritmo de interseção de janela
   proximidade.py             # registro de algoritmos de proximidade (schema + string)
   eventos.py                  # carrega eventos de referência e casa (fuzzy) contra as linhas da amostra
   schema.py                    # normalização de nomes de coluna, Jaccard, Dice
   catalogo.py                   # catálogo de vazamentos conhecidos e fingerprint de origem
-  comparador.py                  # orquestra tudo: amostra -> evidências -> relatório
-  cli.py                          # interface de linha de comando (uso offline sobre JSON/CSV)
+  conectores.py                  # conexão com bancos externos (schema + busca por chave)
+  verificacao.py                  # compara amostra x linhas buscadas de um banco externo
+  comparador.py                    # orquestra tudo: amostra -> evidências -> relatório
+  cli.py                            # interface de linha de comando (uso offline sobre JSON/CSV)
 webapp/                     # interface web (FastAPI + HTMX), banco Postgres
-  main.py, db.py, models.py, repositorio.py, routers/, templates/, static/
+  main.py, db.py, models.py, repositorio.py, cifra.py, routers/, templates/, static/
 data/
   referencias/    -> JSONs de eventos de exemplo — só os *.exemplo.* vão para o git
   catalogo/       -> catálogo de exemplo — idem
@@ -63,7 +73,10 @@ seja pelo banco (via web) ou pelos JSONs (via CLI).
 ## Rodando a interface web (Docker)
 
 ```bash
-cp .env.example .env   # ajuste a senha do Postgres
+cp .env.example .env
+# ajuste a senha do Postgres e gere a chave de cifra:
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# cole o resultado em CRONOVAZAMENTO_CHAVE_CIFRA no .env
 docker compose up --build -d
 ```
 
@@ -84,10 +97,35 @@ O schema do banco é criado automaticamente no startup do container `web`
 testar rápido sem digitar tudo à mão, o painel (`/`) tem um botão **"Importar
 dados de exemplo"** que carrega os JSONs sintéticos de `data/` no banco.
 
-Fluxo na UI: `/amostras/nova` (subir CSV) → abrir a amostra e definir o
-**mapeamento** de campos → `/eventos/*` e `/catalogo` para cadastrar as
-referências → `/analises/nova?amostra_id=` escolhendo os algoritmos de
-proximidade → resultado em `/analises/{id}`.
+Fluxo na UI: `/amostras/nova` (subir CSV, com origem declarada opcional) →
+abrir a amostra e definir o **mapeamento** de campos → `/eventos/*` e
+`/catalogo` para cadastrar as referências → `/analises/nova?amostra_id=`
+escolhendo os algoritmos de proximidade → resultado em `/analises/{id}`.
+
+### Conectar num banco candidato à origem
+
+Em `/conexoes`, cadastre o banco (PostgreSQL, MySQL/MariaDB, SQL Server,
+Oracle, SQLite ou MongoDB) — host, porta, banco, usuário e senha; a senha é
+cifrada (Fernet) antes de gravar, nunca fica em texto puro. **Use só com
+autorização** para acessar aquele banco (é o seu próprio sistema, ou um
+engajamento de pentest/perícia formalizado) — a ferramenta roda `SELECT`
+read-only, mas a responsabilidade de ter permissão pra conectar é sua.
+
+A mesma conexão serve pra duas coisas, em `/conexoes/{id}/tabelas`:
+
+- **Alimentar o catálogo**: escolher uma tabela/coleção e "cadastrar no
+  catálogo" — cria (ou mescla, se já existir) uma entrada com o schema de lá,
+  sem precisar de CSV nenhum.
+- **Verificar**: a partir da página de uma amostra, "escolher tabela e
+  verificar" — busca os mesmos CPFs/CNPJs/placas da amostra nesse banco e
+  compara campo a campo (mesmos algoritmos de `proximidade.py`). O resultado
+  mostra % de registros encontrados e, dos encontrados, quais campos
+  divergem do valor atual no banco — se bate 100% sem divergência, é forte
+  indício de que a amostra veio dali.
+
+Motores fora do escopo por não terem o modelo de "linha com campos nomeados"
+que a comparação usa: armazenamento chave-valor puro (Redis) e mecanismos de
+busca/índice (Elasticsearch, Cassandra).
 
 ## Uso via linha de comando (offline, sobre JSON/CSV)
 

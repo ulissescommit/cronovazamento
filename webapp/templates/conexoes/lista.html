@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block titulo %}Conexões — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Conexões com bancos externos</h1>
+<p class="subtitulo">
+  Cadastre um banco candidato à origem do vazamento aqui. A mesma conexão serve pra
+  duas coisas: <strong>alimentar o catálogo</strong> (importar o schema de uma tabela/coleção
+  como entrada de origem) e <strong>verificar</strong> (cruzar os registros de uma amostra
+  contra os dados de lá). Senha fica cifrada no banco, nunca em texto puro.
+</p>
+
+<div class="card">
+  <h3>Nova conexão</h3>
+  <form method="post" action="/conexoes">
+    <div class="grade">
+      <div>
+        <label for="nome">Nome / apelido</label>
+        <input type="text" id="nome" name="nome" required placeholder="ex.: Produção Loja X">
+      </div>
+      <div>
+        <label for="motor">Motor</label>
+        <select id="motor" name="motor" required onchange="document.getElementById('campo_arquivo').style.display = this.value==='sqlite' ? 'block' : 'none'; document.getElementById('campos_rede').style.display = this.value==='sqlite' ? 'none' : 'grid';">
+          {% for id, rotulo in motores.items() %}
+          <option value="{{ id }}">{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="grade" id="campos_rede">
+      <div>
+        <label for="host">Host</label>
+        <input type="text" id="host" name="host" placeholder="ex.: 10.0.0.5">
+      </div>
+      <div>
+        <label for="porta">Porta (opcional — usa a padrão do motor)</label>
+        <input type="number" id="porta" name="porta">
+      </div>
+      <div>
+        <label for="usuario">Usuário</label>
+        <input type="text" id="usuario" name="usuario">
+      </div>
+      <div>
+        <label for="senha">Senha</label>
+        <input type="text" id="senha" name="senha" autocomplete="off">
+      </div>
+    </div>
+    <div class="grade">
+      <div>
+        <label for="banco">Banco de dados</label>
+        <input type="text" id="banco" name="banco" required placeholder="nome do banco/schema">
+      </div>
+      <div id="campo_arquivo" style="display:none;">
+        <label for="caminho_arquivo">Caminho do arquivo (só SQLite)</label>
+        <input type="text" id="caminho_arquivo" name="caminho_arquivo" placeholder="/caminho/para/base.sqlite">
+      </div>
+    </div>
+    <button type="submit">Cadastrar conexão</button>
+  </form>
+</div>
+
+{% if resultado_teste %}
+<div class="aviso">Teste da conexão #{{ resultado_teste.conexao_id }}: {{ resultado_teste.texto }}</div>
+{% endif %}
+
+{% if conexoes %}
+<table>
+  <thead><tr><th>Nome</th><th>Motor</th><th>Host</th><th>Banco</th><th></th></tr></thead>
+  <tbody>
+    {% for c in conexoes %}
+    <tr>
+      <td>{{ c.nome }}</td>
+      <td>{{ motores.get(c.motor, c.motor) }}</td>
+      <td class="mono">{{ c.host or (c.caminho_arquivo or "—") }}</td>
+      <td class="mono">{{ c.banco }}</td>
+      <td class="lista-acoes">
+        <a href="/conexoes/{{ c.id }}/tabelas">ver tabelas</a>
+        <form method="post" action="/conexoes/{{ c.id }}/testar" style="display:inline;">
+          <button type="submit" class="secundario" style="padding:0.25rem 0.6rem;font-size:0.78rem;">testar</button>
+        </form>
+        <form method="post" action="/conexoes/{{ c.id }}/excluir" style="display:inline;">
+          <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhuma conexão cadastrada.</p>
+{% endif %}
+{% endblock %}
