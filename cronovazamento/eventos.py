@@ -69,6 +69,25 @@ def _forca_fuzzy(algoritmo: str, score: float, padrao: Forca) -> Forca:
     return Forca.FRACA
 
 
+# tipo de evento "X mudou de valor em D" -> (campo lógico mapeado, rótulo pro texto).
+# mudanca_nome é o caso original; os demais cobrem fatos do dia a dia que também
+# servem pra datar um vazamento (telefone/e-mail/endereço trocam, conta social é criada).
+_CAMPOS_MUDANCA: dict[str, tuple[str, str]] = {
+    "mudanca_nome": ("nome", "o nome"),
+    "mudanca_telefone": ("telefone", "o telefone"),
+    "mudanca_email": ("email", "o e-mail"),
+    "mudanca_endereco": ("endereco", "o endereço"),
+    "nova_conta_social": ("usuario_social", "o usuário de rede social"),
+}
+
+
+def _valor_evento(ev: dict[str, Any], chave_generica: str, chave_legada: str) -> str:
+    """Aceita tanto a chave genérica nova (valor_anterior/valor_novo) quanto a
+    legada (nome_anterior/nome_novo, única usada até hoje e ainda a que vem do
+    banco — repositorio.py sempre grava nessas colunas, seja qual for o tipo)."""
+    return str(ev.get(chave_generica) or ev.get(chave_legada) or "")
+
+
 @dataclass
 class BaseEventos:
     eventos: list[dict[str, Any]]
@@ -96,7 +115,6 @@ class EventosPessoa(BaseEventos):
         limiar: float = LIMIAR_PADRAO,
     ) -> list[Evidencia]:
         col_cpf = mapeamento.get("cpf")
-        col_nome = mapeamento.get("nome")
         col_status_obito = mapeamento.get("status_obito")  # coluna booleana/flag opcional
         if not col_cpf or col_cpf not in linha:
             return []
@@ -151,16 +169,18 @@ class EventosPessoa(BaseEventos):
                         )
                     )
 
-            elif tipo == "mudanca_nome":
-                if not col_nome or col_nome not in linha:
+            elif tipo in _CAMPOS_MUDANCA:
+                campo_logico, rotulo = _CAMPOS_MUDANCA[tipo]
+                col_valor = mapeamento.get(campo_logico)
+                if not col_valor or col_valor not in linha:
                     continue
-                nome_amostra = linha[col_nome]
-                nome_novo = str(ev.get("nome_novo", ""))
-                nome_anterior = str(ev.get("nome_anterior", ""))
-                avaliar = _melhor_correspondencia(nome_amostra, algoritmos)
+                valor_amostra = linha[col_valor]
+                valor_novo = _valor_evento(ev, "valor_novo", "nome_novo")
+                valor_anterior = _valor_evento(ev, "valor_anterior", "nome_anterior")
+                avaliar = _melhor_correspondencia(valor_amostra, algoritmos)
 
-                alg_novo, score_novo = avaliar(nome_novo) if nome_novo else ("exato", 0.0)
-                alg_anterior, score_anterior = avaliar(nome_anterior) if nome_anterior else ("exato", 0.0)
+                alg_novo, score_novo = avaliar(valor_novo) if valor_novo else ("exato", 0.0)
+                alg_anterior, score_anterior = avaliar(valor_anterior) if valor_anterior else ("exato", 0.0)
 
                 if score_novo >= limiar and score_novo >= score_anterior:
                     forca = _forca_fuzzy(alg_novo, score_novo, _forca(ev, Forca.FORTE))
@@ -168,12 +188,12 @@ class EventosPessoa(BaseEventos):
                     evidencias.append(
                         Evidencia(
                             chave=chave,
-                            tipo_evento="mudanca_nome",
+                            tipo_evento=tipo,
                             direcao=Direcao.POS,
                             data_referencia=data_ref,
                             forca=forca,
                             justificativa=(
-                                f"CPF {cpf} aparece com o nome novo ('{ev.get('nome_novo')}'){detalhe}, "
+                                f"CPF {cpf} aparece com {rotulo} novo ('{valor_novo}'){detalhe}, "
                                 f"mudança ocorreu em {data_ref.isoformat()}"
                             ),
                             algoritmo=None if alg_novo == "exato" else alg_novo,
@@ -186,14 +206,14 @@ class EventosPessoa(BaseEventos):
                     evidencias.append(
                         Evidencia(
                             chave=chave,
-                            tipo_evento="mudanca_nome",
+                            tipo_evento=tipo,
                             direcao=Direcao.ANTES,
                             data_referencia=data_ref,
                             forca=forca,
                             justificativa=(
-                                f"CPF {cpf} ainda aparece com o nome anterior "
-                                f"('{ev.get('nome_anterior')}'){detalhe}, mudança seria em "
-                                f"{data_ref.isoformat()} (nome antigo pode persistir por atraso cadastral)"
+                                f"CPF {cpf} ainda aparece com {rotulo} anterior "
+                                f"('{valor_anterior}'){detalhe}, mudança seria em "
+                                f"{data_ref.isoformat()} (base pode estar desatualizada)"
                             ),
                             algoritmo=None if alg_anterior == "exato" else alg_anterior,
                             score=None if alg_anterior == "exato" else score_anterior,

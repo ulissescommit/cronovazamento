@@ -103,6 +103,12 @@ def _hex_len(n: int) -> Callable[[str], bool]:
 
 _RE_EMAIL = re.compile(r"^[^@\s]+@(?=.{1,253}$)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
 _RE_URL = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.\-]*://[^\s]+$")
+_RE_HANDLE_SOCIAL = re.compile(r"^@[A-Za-z0-9_.]{2,30}$")
+_RE_URL_PERFIL_SOCIAL = re.compile(
+    r"^https?://(www\.)?(instagram\.com|facebook\.com|twitter\.com|x\.com|"
+    r"linkedin\.com|tiktok\.com|threads\.net)/",
+    re.IGNORECASE,
+)
 
 
 def _v_ip_any(v: str) -> bool:
@@ -158,6 +164,14 @@ TIPOS: list[TipoDado] = [
     TipoDado("placa_veiculo", "Veículo", "Placa (padrão antigo ou Mercosul)", _placa_valida),
     TipoDado("telefone", "Contato", "Telefone brasileiro", _telefone_br_valido),
     TipoDado("email", "Contato", "E-mail", lambda v: bool(_RE_EMAIL.match(v.strip()))),
+    TipoDado(
+        "usuario_rede_social", "Dados sociais", "Usuário/handle de rede social (@fulano)",
+        lambda v: bool(_RE_HANDLE_SOCIAL.match(v.strip())),
+    ),
+    TipoDado(
+        "url_perfil_social", "Dados sociais", "URL de perfil em rede social conhecida",
+        lambda v: bool(_RE_URL_PERFIL_SOCIAL.match(v.strip())),
+    ),
     TipoDado("url", "Rede", "URL", lambda v: bool(_RE_URL.match(v.strip()))),
     TipoDado("ip", "Rede", "Endereço IP", _v_ip_any),
     TipoDado("nome_pessoa", "Dados pessoais", "Provável nome completo de pessoa", _nome_pessoa_provavel),
@@ -175,6 +189,10 @@ TIPO_PARA_CAMPO_LOGICO: dict[str, str] = {
     "cnpj": "cnpj",
     "placa_veiculo": "placa",
     "nome_pessoa": "nome",
+    "telefone": "telefone",
+    "email": "email",
+    "usuario_rede_social": "usuario_social",
+    "url_perfil_social": "usuario_social",
 }
 
 

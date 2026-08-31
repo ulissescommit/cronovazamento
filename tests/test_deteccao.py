@@ -41,6 +41,25 @@ class TestDetectarTipoValor(unittest.TestCase):
         tipo, _ = detectar_tipo_valor("")
         self.assertEqual(tipo.nome, "texto")
 
+    def test_usuario_rede_social(self):
+        tipo, _ = detectar_tipo_valor("@fulano_da_silva")
+        self.assertEqual(tipo.nome, "usuario_rede_social")
+        self.assertEqual(tipo.categoria, "Dados sociais")
+
+    def test_usuario_rede_social_sem_arroba_nao_casa(self):
+        # sem @ é indistinguível de texto comum -> não deve reivindicar
+        tipo, _ = detectar_tipo_valor("fulano_da_silva")
+        self.assertNotEqual(tipo.nome, "usuario_rede_social")
+
+    def test_url_perfil_social(self):
+        tipo, _ = detectar_tipo_valor("https://www.instagram.com/fulano")
+        self.assertEqual(tipo.nome, "url_perfil_social")
+        self.assertEqual(tipo.categoria, "Dados sociais")
+
+    def test_url_generica_nao_vira_perfil_social(self):
+        tipo, _ = detectar_tipo_valor("https://exemplo.com/pagina")
+        self.assertEqual(tipo.nome, "url")
+
 
 class TestDetectarTipoColuna(unittest.TestCase):
     def test_coluna_predominantemente_cpf(self):

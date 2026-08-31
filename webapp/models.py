@@ -57,8 +57,13 @@ class EventoPessoa(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     cpf: Mapped[str] = mapped_column(String(32), index=True)
-    tipo: Mapped[str] = mapped_column(String(32))  # nascimento | obito | mudanca_nome
+    # nascimento | obito | mudanca_nome | mudanca_telefone | mudanca_email |
+    # mudanca_endereco | nova_conta_social
+    tipo: Mapped[str] = mapped_column(String(32))
     data: Mapped[date] = mapped_column(Date)
+    # reaproveitadas como "valor anterior/novo" genérico pra qualquer tipo de
+    # mudança (nome, telefone, e-mail, endereço, usuário social) — o nome da
+    # coluna ficou de quando só existia mudança de nome; ver cronovazamento/eventos.py
     nome_anterior: Mapped[str | None] = mapped_column(String(255), default=None)
     nome_novo: Mapped[str | None] = mapped_column(String(255), default=None)
     forca: Mapped[str | None] = mapped_column(String(16), default=None)

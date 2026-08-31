@@ -5,6 +5,13 @@
     "data": "1990-04-12"
   },
   {
+    "cpf": "12345678909",
+    "tipo": "mudanca_telefone",
+    "data": "2022-03-01",
+    "valor_anterior": "11988887777",
+    "valor_novo": "11999998888"
+  },
+  {
     "cpf": "98765432100",
     "tipo": "mudanca_nome",
     "data": "2019-08-15",

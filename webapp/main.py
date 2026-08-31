@@ -88,6 +88,8 @@ def importar_exemplos(request: Request, sessao: Session = Depends(obter_sessao))
         sessao.add(models.Mapeamento(amostra_id=amostra.id, campo_logico="cpf", coluna="CPF"))
         sessao.add(models.Mapeamento(amostra_id=amostra.id, campo_logico="nome", coluna="NOME_COMPLETO"))
         sessao.add(models.Mapeamento(amostra_id=amostra.id, campo_logico="status_obito", coluna="STATUS_OBITO"))
+        if "TELEFONE" in colunas:
+            sessao.add(models.Mapeamento(amostra_id=amostra.id, campo_logico="telefone", coluna="TELEFONE"))
 
     caminho_eventos_pessoa = DIR_EXEMPLOS_REFERENCIAS / "eventos_pessoa.exemplo.json"
     if caminho_eventos_pessoa.exists():
@@ -98,8 +100,8 @@ def importar_exemplos(request: Request, sessao: Session = Depends(obter_sessao))
                         cpf=ev["cpf"],
                         tipo=ev["tipo"],
                         data=date.fromisoformat(ev["data"]),
-                        nome_anterior=ev.get("nome_anterior"),
-                        nome_novo=ev.get("nome_novo"),
+                        nome_anterior=ev.get("valor_anterior") or ev.get("nome_anterior"),
+                        nome_novo=ev.get("valor_novo") or ev.get("nome_novo"),
                         forca=ev.get("forca"),
                     )
                 )

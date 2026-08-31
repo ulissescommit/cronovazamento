@@ -52,13 +52,15 @@ async def importar_pessoa(request: Request, arquivo: UploadFile = File(...), ses
         linhas = _linhas_de_arquivo(await arquivo.read(), arquivo.filename or "")
         for linha in linhas:
             try:
+                valor_anterior = linha.get("valor_anterior") or linha.get("nome_anterior")
+                valor_novo = linha.get("valor_novo") or linha.get("nome_novo")
                 sessao.add(
                     models.EventoPessoa(
                         cpf=str(linha["cpf"]).strip(),
                         tipo=str(linha["tipo"]).strip(),
                         data=date.fromisoformat(str(linha["data"]).strip()),
-                        nome_anterior=str(linha.get("nome_anterior") or "").strip() or None,
-                        nome_novo=str(linha.get("nome_novo") or "").strip() or None,
+                        nome_anterior=str(valor_anterior or "").strip() or None,
+                        nome_novo=str(valor_novo or "").strip() or None,
                         forca=str(linha.get("forca") or "").strip() or None,
                     )
                 )
@@ -79,8 +81,8 @@ def criar_pessoa(
     cpf: str = Form(...),
     tipo: str = Form(...),
     data: date = Form(...),
-    nome_anterior: str = Form(""),
-    nome_novo: str = Form(""),
+    valor_anterior: str = Form(""),
+    valor_novo: str = Form(""),
     forca: str = Form(""),
     sessao: Session = Depends(obter_sessao),
 ):
@@ -89,8 +91,8 @@ def criar_pessoa(
             cpf=cpf.strip(),
             tipo=tipo,
             data=data,
-            nome_anterior=nome_anterior.strip() or None,
-            nome_novo=nome_novo.strip() or None,
+            nome_anterior=valor_anterior.strip() or None,
+            nome_novo=valor_novo.strip() or None,
             forca=forca or None,
         )
     )

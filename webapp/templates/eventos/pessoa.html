@@ -14,10 +14,14 @@
   <h3>Importar em lote</h3>
   <p class="subtitulo" style="margin-top:-0.3rem;">
     Jogue um arquivo — <strong>.csv</strong> com cabeçalho
-    <span class="mono">cpf,tipo,data,nome_anterior,nome_novo,forca</span>
+    <span class="mono">cpf,tipo,data,valor_anterior,valor_novo,forca</span>
     ou <strong>.json</strong> (lista de objetos, mesmo schema do CLI). Campos opcionais podem
     ficar em branco. <span class="mono">tipo</span> é <span class="mono">nascimento</span>,
-    <span class="mono">obito</span> ou <span class="mono">mudanca_nome</span>.
+    <span class="mono">obito</span>, <span class="mono">mudanca_nome</span>,
+    <span class="mono">mudanca_telefone</span>, <span class="mono">mudanca_email</span>,
+    <span class="mono">mudanca_endereco</span> ou <span class="mono">nova_conta_social</span>
+    — os cinco últimos usam <span class="mono">valor_anterior</span>/<span class="mono">valor_novo</span>
+    pro que mudou.
   </p>
   <form method="post" action="pessoa/importar" enctype="multipart/form-data">
     <input type="file" name="arquivo" accept=".csv,.json" required>
@@ -46,10 +50,14 @@
         </div>
         <div>
           <label for="tipo">Tipo</label>
-          <select id="tipo" name="tipo" required onchange="document.getElementById('campos_nome').style.display = this.value==='mudanca_nome' ? 'grid' : 'none'">
+          <select id="tipo" name="tipo" required onchange="document.getElementById('campos_valor').style.display = ['mudanca_nome','mudanca_telefone','mudanca_email','mudanca_endereco','nova_conta_social'].includes(this.value) ? 'grid' : 'none'">
             <option value="nascimento">nascimento</option>
             <option value="obito">óbito</option>
             <option value="mudanca_nome">mudança de nome</option>
+            <option value="mudanca_telefone">mudança de telefone</option>
+            <option value="mudanca_email">mudança de e-mail</option>
+            <option value="mudanca_endereco">mudança de endereço</option>
+            <option value="nova_conta_social">nova conta em rede social</option>
           </select>
         </div>
         <div>
@@ -65,14 +73,14 @@
           </select>
         </div>
       </div>
-      <div class="grade" id="campos_nome" style="display:none;">
+      <div class="grade" id="campos_valor" style="display:none;">
         <div>
-          <label for="nome_anterior">Nome anterior</label>
-          <input type="text" id="nome_anterior" name="nome_anterior">
+          <label for="valor_anterior">Valor anterior</label>
+          <input type="text" id="valor_anterior" name="valor_anterior">
         </div>
         <div>
-          <label for="nome_novo">Nome novo</label>
-          <input type="text" id="nome_novo" name="nome_novo">
+          <label for="valor_novo">Valor novo</label>
+          <input type="text" id="valor_novo" name="valor_novo">
         </div>
       </div>
       <button type="submit">Adicionar</button>
@@ -90,7 +98,7 @@
       <td>{{ e.tipo }}</td>
       <td>{{ e.data }}</td>
       <td>
-        {% if e.tipo == "mudanca_nome" %}{{ e.nome_anterior }} &rarr; {{ e.nome_novo }}{% endif %}
+        {% if e.nome_anterior or e.nome_novo %}{{ e.nome_anterior or "?" }} &rarr; {{ e.nome_novo or "?" }}{% endif %}
       </td>
       <td>{{ e.forca or "—" }}</td>
       <td>

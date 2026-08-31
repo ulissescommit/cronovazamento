@@ -53,5 +53,48 @@ class TestCasamentoFuzzyPessoa(unittest.TestCase):
         self.assertEqual(evidencias, [])
 
 
+class TestMudancaGenericaOutrosCampos(unittest.TestCase):
+    """mudanca_telefone/email/endereco/nova_conta_social seguem o mesmo motor
+    de mudanca_nome, só trocando o campo lógico mapeado (ver _CAMPOS_MUDANCA
+    em cronovazamento/eventos.py)."""
+
+    def test_mudanca_telefone_usa_campo_telefone_do_mapeamento(self):
+        eventos = EventosPessoa(
+            eventos=[
+                {
+                    "cpf": "1",
+                    "tipo": "mudanca_telefone",
+                    "data": "2022-03-01",
+                    "valor_anterior": "11988887777",
+                    "valor_novo": "11999998888",
+                }
+            ]
+        )
+        mapeamento = {"cpf": "CPF", "telefone": "TELEFONE"}
+        linha = {"CPF": "1", "TELEFONE": "11999998888"}
+        evidencias = eventos.gerar_evidencias(linha, mapeamento, algoritmos=["exato"])
+        self.assertEqual(len(evidencias), 1)
+        self.assertEqual(evidencias[0].tipo_evento, "mudanca_telefone")
+        self.assertEqual(evidencias[0].direcao, Direcao.POS)
+        self.assertEqual(evidencias[0].forca, Forca.FORTE)
+
+    def test_sem_mapeamento_do_campo_nao_gera_evidencia(self):
+        eventos = EventosPessoa(
+            eventos=[
+                {
+                    "cpf": "1",
+                    "tipo": "mudanca_telefone",
+                    "data": "2022-03-01",
+                    "valor_anterior": "11988887777",
+                    "valor_novo": "11999998888",
+                }
+            ]
+        )
+        # mapeamento não tem "telefone" -> não tem como saber qual coluna olhar
+        linha = {"CPF": "1", "TELEFONE": "11999998888"}
+        evidencias = eventos.gerar_evidencias(linha, {"cpf": "CPF"}, algoritmos=["exato"])
+        self.assertEqual(evidencias, [])
+
+
 if __name__ == "__main__":
     unittest.main()
