@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import csv
+import io
+import json
 from datetime import date
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -15,10 +18,59 @@ router = APIRouter(prefix="/eventos", tags=["eventos"])
 templates = Jinja2Templates(directory="webapp/templates")
 
 
+def _linhas_de_arquivo(conteudo: bytes, nome_arquivo: str) -> list[dict]:
+    """Aceita .json (lista de objetos, mesmo schema do CLI/data/referencias/*.exemplo.json)
+    ou .csv (cabeçalho = nome dos campos). É o caminho principal pra alimentar eventos —
+    o formulário de um-por-vez existe só pra ajuste pontual."""
+    texto = conteudo.decode("utf-8-sig")
+    if nome_arquivo.lower().endswith(".json"):
+        dados = json.loads(texto)
+        if not isinstance(dados, list):
+            raise ValueError("o JSON precisa ser uma lista de eventos")
+        return dados
+    leitor = csv.DictReader(io.StringIO(texto))
+    if not leitor.fieldnames:
+        raise ValueError("não foi possível detectar colunas no CSV")
+    return [dict(linha) for linha in leitor]
+
+
+# ---------------------------------------------------------------------------
+# pessoa
+# ---------------------------------------------------------------------------
+
+
 @router.get("/pessoa", response_class=HTMLResponse)
 def listar_pessoa(request: Request, sessao: Session = Depends(obter_sessao)):
     eventos = sessao.query(models.EventoPessoa).order_by(models.EventoPessoa.data.desc()).all()
     return templates.TemplateResponse(request, "eventos/pessoa.html", {"eventos": eventos})
+
+
+@router.post("/pessoa/importar")
+async def importar_pessoa(request: Request, arquivo: UploadFile = File(...), sessao: Session = Depends(obter_sessao)):
+    resultado = {"importados": 0, "erros": 0, "mensagem_erro": None}
+    try:
+        linhas = _linhas_de_arquivo(await arquivo.read(), arquivo.filename or "")
+        for linha in linhas:
+            try:
+                sessao.add(
+                    models.EventoPessoa(
+                        cpf=str(linha["cpf"]).strip(),
+                        tipo=str(linha["tipo"]).strip(),
+                        data=date.fromisoformat(str(linha["data"]).strip()),
+                        nome_anterior=str(linha.get("nome_anterior") or "").strip() or None,
+                        nome_novo=str(linha.get("nome_novo") or "").strip() or None,
+                        forca=str(linha.get("forca") or "").strip() or None,
+                    )
+                )
+                resultado["importados"] += 1
+            except Exception:
+                resultado["erros"] += 1
+        sessao.commit()
+    except Exception as exc:
+        resultado["mensagem_erro"] = str(exc)
+
+    eventos = sessao.query(models.EventoPessoa).order_by(models.EventoPessoa.data.desc()).all()
+    return templates.TemplateResponse(request, "eventos/pessoa.html", {"eventos": eventos, "resultado_importacao": resultado})
 
 
 @router.post("/pessoa")
@@ -53,10 +105,44 @@ def excluir_pessoa(request: Request, evento_id: int, sessao: Session = Depends(o
     return redirecionar(request, "/eventos/pessoa")
 
 
+# ---------------------------------------------------------------------------
+# empresa
+# ---------------------------------------------------------------------------
+
+
 @router.get("/empresa", response_class=HTMLResponse)
 def listar_empresa(request: Request, sessao: Session = Depends(obter_sessao)):
     eventos = sessao.query(models.EventoEmpresa).order_by(models.EventoEmpresa.data.desc()).all()
     return templates.TemplateResponse(request, "eventos/empresa.html", {"eventos": eventos})
+
+
+@router.post("/empresa/importar")
+async def importar_empresa(request: Request, arquivo: UploadFile = File(...), sessao: Session = Depends(obter_sessao)):
+    resultado = {"importados": 0, "erros": 0, "mensagem_erro": None}
+    try:
+        linhas = _linhas_de_arquivo(await arquivo.read(), arquivo.filename or "")
+        for linha in linhas:
+            try:
+                participacao = linha.get("participacao_nova")
+                sessao.add(
+                    models.EventoEmpresa(
+                        cnpj=str(linha["cnpj"]).strip(),
+                        data=date.fromisoformat(str(linha["data"]).strip()),
+                        socio=str(linha["socio"]).strip(),
+                        situacao_nova=str(linha["situacao_nova"]).strip(),
+                        participacao_nova=float(participacao) if participacao not in (None, "") else None,
+                        forca=str(linha.get("forca") or "").strip() or None,
+                    )
+                )
+                resultado["importados"] += 1
+            except Exception:
+                resultado["erros"] += 1
+        sessao.commit()
+    except Exception as exc:
+        resultado["mensagem_erro"] = str(exc)
+
+    eventos = sessao.query(models.EventoEmpresa).order_by(models.EventoEmpresa.data.desc()).all()
+    return templates.TemplateResponse(request, "eventos/empresa.html", {"eventos": eventos, "resultado_importacao": resultado})
 
 
 @router.post("/empresa")
@@ -91,10 +177,42 @@ def excluir_empresa(request: Request, evento_id: int, sessao: Session = Depends(
     return redirecionar(request, "/eventos/empresa")
 
 
+# ---------------------------------------------------------------------------
+# veiculo
+# ---------------------------------------------------------------------------
+
+
 @router.get("/veiculo", response_class=HTMLResponse)
 def listar_veiculo(request: Request, sessao: Session = Depends(obter_sessao)):
     eventos = sessao.query(models.EventoVeiculo).order_by(models.EventoVeiculo.data.desc()).all()
     return templates.TemplateResponse(request, "eventos/veiculo.html", {"eventos": eventos})
+
+
+@router.post("/veiculo/importar")
+async def importar_veiculo(request: Request, arquivo: UploadFile = File(...), sessao: Session = Depends(obter_sessao)):
+    resultado = {"importados": 0, "erros": 0, "mensagem_erro": None}
+    try:
+        linhas = _linhas_de_arquivo(await arquivo.read(), arquivo.filename or "")
+        for linha in linhas:
+            try:
+                sessao.add(
+                    models.EventoVeiculo(
+                        placa=str(linha["placa"]).strip(),
+                        data=date.fromisoformat(str(linha["data"]).strip()),
+                        proprietario_anterior=str(linha.get("proprietario_anterior") or "").strip() or None,
+                        proprietario_novo=str(linha.get("proprietario_novo") or "").strip() or None,
+                        forca=str(linha.get("forca") or "").strip() or None,
+                    )
+                )
+                resultado["importados"] += 1
+            except Exception:
+                resultado["erros"] += 1
+        sessao.commit()
+    except Exception as exc:
+        resultado["mensagem_erro"] = str(exc)
+
+    eventos = sessao.query(models.EventoVeiculo).order_by(models.EventoVeiculo.data.desc()).all()
+    return templates.TemplateResponse(request, "eventos/veiculo.html", {"eventos": eventos, "resultado_importacao": resultado})
 
 
 @router.post("/veiculo")

@@ -2,59 +2,85 @@
 {% block titulo %}Eventos de veículo — cronovazamento{% endblock %}
 {% block conteudo %}
 <h1>Eventos de veículo</h1>
-<p class="subtitulo">Transferências de propriedade (DETRAN): placa mudou de dono.</p>
+<p class="subtitulo">Trocas de proprietário no registro de veículo (Detran).</p>
 
 <nav style="margin-bottom:1rem;">
-  <a class="botao secundario" href="eventos/pessoa">pessoa</a>
-  <a class="botao secundario" href="eventos/empresa">empresa</a>
-  <a class="botao secundario" href="eventos/veiculo">veículo</a>
+  <a class="botao secundario" href="pessoa">pessoa</a>
+  <a class="botao secundario" href="empresa">empresa</a>
+  <a class="botao secundario" href="veiculo">veículo</a>
 </nav>
 
 <div class="card">
-  <h3>Adicionar evento</h3>
-  <form method="post" action="eventos/veiculo">
-    <div class="grade">
-      <div>
-        <label for="placa">Placa</label>
-        <input type="text" id="placa" name="placa" required>
-      </div>
-      <div>
-        <label for="data">Data</label>
-        <input type="date" id="data" name="data" required>
-      </div>
-      <div>
-        <label for="proprietario_anterior">Proprietário anterior</label>
-        <input type="text" id="proprietario_anterior" name="proprietario_anterior">
-      </div>
-      <div>
-        <label for="proprietario_novo">Proprietário novo</label>
-        <input type="text" id="proprietario_novo" name="proprietario_novo">
-      </div>
-      <div>
-        <label for="forca">Força (opcional)</label>
-        <select id="forca" name="forca">
-          <option value="">— padrão do tipo —</option>
-          <option value="forte">forte</option>
-          <option value="fraca">fraca</option>
-        </select>
-      </div>
-    </div>
-    <button type="submit">Adicionar</button>
+  <h3>Importar em lote</h3>
+  <p class="subtitulo" style="margin-top:-0.3rem;">
+    Jogue um arquivo — <strong>.csv</strong> com cabeçalho
+    <span class="mono">placa,data,proprietario_anterior,proprietario_novo,forca</span>
+    ou <strong>.json</strong> (lista de objetos). Campos opcionais podem ficar em branco.
+  </p>
+  <form method="post" action="veiculo/importar" enctype="multipart/form-data">
+    <input type="file" name="arquivo" accept=".csv,.json" required>
+    <button type="submit">Importar arquivo</button>
   </form>
+  {% if resultado_importacao %}
+    {% if resultado_importacao.mensagem_erro %}
+    <div class="aviso" style="margin-top:0.8rem;">Não deu pra ler o arquivo: {{ resultado_importacao.mensagem_erro }}</div>
+    {% else %}
+    <div class="aviso" style="margin-top:0.8rem;">
+      {{ resultado_importacao.importados }} evento(s) importado(s)
+      {% if resultado_importacao.erros %}· {{ resultado_importacao.erros }} linha(s) com erro{% endif %}.
+    </div>
+    {% endif %}
+  {% endif %}
 </div>
+
+<details style="margin:1rem 0;">
+  <summary style="cursor:pointer; color:var(--cinza); font-size:0.9rem;">Adicionar um evento manualmente (último caso)</summary>
+  <div class="card" style="margin-top:0.6rem;">
+    <form method="post" action="veiculo">
+      <div class="grade">
+        <div>
+          <label for="placa">Placa</label>
+          <input type="text" id="placa" name="placa" required>
+        </div>
+        <div>
+          <label for="data">Data</label>
+          <input type="date" id="data" name="data" required>
+        </div>
+        <div>
+          <label for="proprietario_anterior">Proprietário anterior (opcional)</label>
+          <input type="text" id="proprietario_anterior" name="proprietario_anterior">
+        </div>
+        <div>
+          <label for="proprietario_novo">Proprietário novo (opcional)</label>
+          <input type="text" id="proprietario_novo" name="proprietario_novo">
+        </div>
+        <div>
+          <label for="forca">Força (opcional)</label>
+          <select id="forca" name="forca">
+            <option value="">— padrão do tipo —</option>
+            <option value="forte">forte</option>
+            <option value="fraca">fraca</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit">Adicionar</button>
+    </form>
+  </div>
+</details>
 
 {% if eventos %}
 <table>
-  <thead><tr><th>Placa</th><th>Data</th><th>Anterior &rarr; Novo</th><th>Força</th><th></th></tr></thead>
+  <thead><tr><th>Placa</th><th>Data</th><th>Proprietário anterior</th><th>Proprietário novo</th><th>Força</th><th></th></tr></thead>
   <tbody>
     {% for e in eventos %}
     <tr>
       <td class="mono">{{ e.placa }}</td>
       <td>{{ e.data }}</td>
-      <td>{{ e.proprietario_anterior }} &rarr; {{ e.proprietario_novo }}</td>
+      <td>{{ e.proprietario_anterior or "—" }}</td>
+      <td>{{ e.proprietario_novo or "—" }}</td>
       <td>{{ e.forca or "—" }}</td>
       <td>
-        <form method="post" action="eventos/veiculo/{{ e.id }}/excluir" style="display:inline;">
+        <form method="post" action="veiculo/{{ e.id }}/excluir" style="display:inline;">
           <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
         </form>
       </td>
