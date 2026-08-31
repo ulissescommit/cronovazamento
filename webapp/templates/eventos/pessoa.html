@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block titulo %}Eventos de pessoa — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Eventos de pessoa</h1>
+<p class="subtitulo">Fatos com data conhecida: nascimento, óbito, mudança de nome (casamento etc).</p>
+
+<nav style="margin-bottom:1rem;">
+  <a class="botao secundario" href="/eventos/pessoa">pessoa</a>
+  <a class="botao secundario" href="/eventos/empresa">empresa</a>
+  <a class="botao secundario" href="/eventos/veiculo">veículo</a>
+</nav>
+
+<div class="card">
+  <h3>Adicionar evento</h3>
+  <form method="post" action="/eventos/pessoa">
+    <div class="grade">
+      <div>
+        <label for="cpf">CPF</label>
+        <input type="text" id="cpf" name="cpf" required>
+      </div>
+      <div>
+        <label for="tipo">Tipo</label>
+        <select id="tipo" name="tipo" required onchange="document.getElementById('campos_nome').style.display = this.value==='mudanca_nome' ? 'grid' : 'none'">
+          <option value="nascimento">nascimento</option>
+          <option value="obito">óbito</option>
+          <option value="mudanca_nome">mudança de nome</option>
+        </select>
+      </div>
+      <div>
+        <label for="data">Data</label>
+        <input type="date" id="data" name="data" required>
+      </div>
+      <div>
+        <label for="forca">Força (opcional)</label>
+        <select id="forca" name="forca">
+          <option value="">— padrão do tipo —</option>
+          <option value="forte">forte</option>
+          <option value="fraca">fraca</option>
+        </select>
+      </div>
+    </div>
+    <div class="grade" id="campos_nome" style="display:none;">
+      <div>
+        <label for="nome_anterior">Nome anterior</label>
+        <input type="text" id="nome_anterior" name="nome_anterior">
+      </div>
+      <div>
+        <label for="nome_novo">Nome novo</label>
+        <input type="text" id="nome_novo" name="nome_novo">
+      </div>
+    </div>
+    <button type="submit">Adicionar</button>
+  </form>
+</div>
+
+{% if eventos %}
+<table>
+  <thead><tr><th>CPF</th><th>Tipo</th><th>Data</th><th>Detalhe</th><th>Força</th><th></th></tr></thead>
+  <tbody>
+    {% for e in eventos %}
+    <tr>
+      <td class="mono">{{ e.cpf }}</td>
+      <td>{{ e.tipo }}</td>
+      <td>{{ e.data }}</td>
+      <td>
+        {% if e.tipo == "mudanca_nome" %}{{ e.nome_anterior }} &rarr; {{ e.nome_novo }}{% endif %}
+      </td>
+      <td>{{ e.forca or "—" }}</td>
+      <td>
+        <form method="post" action="/eventos/pessoa/{{ e.id }}/excluir" style="display:inline;">
+          <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhum evento de pessoa cadastrado.</p>
+{% endif %}
+{% endblock %}

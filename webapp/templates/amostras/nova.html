@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Nova amostra — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Subir amostra</h1>
+<p class="subtitulo">Envie o CSV da amostra vazada. As colunas são detectadas automaticamente.</p>
+
+{% if erro %}<div class="aviso">{{ erro }}</div>{% endif %}
+
+<form method="post" action="/amostras" enctype="multipart/form-data">
+  <label for="nome">Nome / identificação</label>
+  <input type="text" id="nome" name="nome" required placeholder="ex.: Amostra recebida em 30/08 — fórum X">
+
+  <label for="delimitador">Delimitador</label>
+  <select id="delimitador" name="delimitador">
+    <option value=",">vírgula (,)</option>
+    <option value=";">ponto e vírgula (;)</option>
+    <option value="	">tab</option>
+    <option value="|">pipe (|)</option>
+  </select>
+
+  <label for="arquivo">Arquivo CSV</label>
+  <input type="file" id="arquivo" name="arquivo" accept=".csv,text/csv" required>
+
+  <button type="submit">Enviar</button>
+</form>
+{% endblock %}

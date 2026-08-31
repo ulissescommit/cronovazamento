@@ -1,0 +1,19 @@
+[
+  {
+    "cpf": "11111111111",
+    "tipo": "nascimento",
+    "data": "1990-04-12"
+  },
+  {
+    "cpf": "22222222222",
+    "tipo": "mudanca_nome",
+    "data": "2019-08-15",
+    "nome_anterior": "Maria Souza",
+    "nome_novo": "Maria Souza Lima"
+  },
+  {
+    "cpf": "33333333333",
+    "tipo": "obito",
+    "data": "2021-02-01"
+  }
+]

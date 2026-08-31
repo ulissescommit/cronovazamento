@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block titulo %}Eventos de empresa — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Eventos de empresa</h1>
+<p class="subtitulo">Alterações de quadro societário: sócio entrou/saiu, participação mudou.</p>
+
+<nav style="margin-bottom:1rem;">
+  <a class="botao secundario" href="/eventos/pessoa">pessoa</a>
+  <a class="botao secundario" href="/eventos/empresa">empresa</a>
+  <a class="botao secundario" href="/eventos/veiculo">veículo</a>
+</nav>
+
+<div class="card">
+  <h3>Adicionar evento</h3>
+  <form method="post" action="/eventos/empresa">
+    <div class="grade">
+      <div>
+        <label for="cnpj">CNPJ</label>
+        <input type="text" id="cnpj" name="cnpj" required>
+      </div>
+      <div>
+        <label for="data">Data</label>
+        <input type="date" id="data" name="data" required>
+      </div>
+      <div>
+        <label for="socio">Sócio</label>
+        <input type="text" id="socio" name="socio" required>
+      </div>
+      <div>
+        <label for="situacao_nova">Situação nova</label>
+        <select id="situacao_nova" name="situacao_nova" required>
+          <option value="presente">entrou (presente)</option>
+          <option value="ausente">saiu (ausente)</option>
+        </select>
+      </div>
+      <div>
+        <label for="participacao_nova">Participação nova (%, opcional)</label>
+        <input type="number" step="0.01" id="participacao_nova" name="participacao_nova">
+      </div>
+      <div>
+        <label for="forca">Força (opcional)</label>
+        <select id="forca" name="forca">
+          <option value="">— padrão do tipo —</option>
+          <option value="forte">forte</option>
+          <option value="fraca">fraca</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit">Adicionar</button>
+  </form>
+</div>
+
+{% if eventos %}
+<table>
+  <thead><tr><th>CNPJ</th><th>Data</th><th>Sócio</th><th>Situação</th><th>Participação</th><th>Força</th><th></th></tr></thead>
+  <tbody>
+    {% for e in eventos %}
+    <tr>
+      <td class="mono">{{ e.cnpj }}</td>
+      <td>{{ e.data }}</td>
+      <td>{{ e.socio }}</td>
+      <td>{{ e.situacao_nova }}</td>
+      <td>{{ e.participacao_nova if e.participacao_nova is not none else "—" }}</td>
+      <td>{{ e.forca or "—" }}</td>
+      <td>
+        <form method="post" action="/eventos/empresa/{{ e.id }}/excluir" style="display:inline;">
+          <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhum evento de empresa cadastrado.</p>
+{% endif %}
+{% endblock %}

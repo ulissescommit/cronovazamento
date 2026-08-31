@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block titulo %}Painel — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Painel</h1>
+<p class="subtitulo">Datação e atribuição de origem de vazamentos de dados.</p>
+
+<div class="grade">
+  <div class="card">
+    <h3>Amostras</h3>
+    <p style="font-size:1.8rem;margin:0.2rem 0;">{{ n_amostras }}</p>
+    <a class="botao secundario" href="/amostras">ver amostras</a>
+    <a class="botao secundario" href="/amostras/nova">subir nova</a>
+  </div>
+  <div class="card">
+    <h3>Eventos de referência</h3>
+    <p style="font-size:1.8rem;margin:0.2rem 0;">{{ n_eventos }}</p>
+    <a class="botao secundario" href="/eventos/pessoa">gerenciar</a>
+  </div>
+  <div class="card">
+    <h3>Catálogo de origem</h3>
+    <p style="font-size:1.8rem;margin:0.2rem 0;">{{ n_catalogo }}</p>
+    <a class="botao secundario" href="/catalogo">gerenciar</a>
+  </div>
+  <div class="card">
+    <h3>Análises rodadas</h3>
+    <p style="font-size:1.8rem;margin:0.2rem 0;">{{ n_analises }}</p>
+    <a class="botao secundario" href="/analises">ver histórico</a>
+  </div>
+</div>
+
+{% if n_amostras == 0 and n_eventos == 0 and n_catalogo == 0 %}
+<div class="aviso">
+  Banco vazio. Para testar rápido com os dados de exemplo sintéticos do projeto:
+  <form method="post" action="/exemplos/importar" style="display:inline;">
+    <button type="submit">Importar dados de exemplo</button>
+  </form>
+</div>
+{% endif %}
+
+<h2>Amostras recentes</h2>
+{% if amostras_recentes %}
+<table>
+  <thead><tr><th>Nome</th><th>Colunas</th><th>Enviada em</th><th></th></tr></thead>
+  <tbody>
+    {% for a in amostras_recentes %}
+    <tr>
+      <td>{{ a.nome }}</td>
+      <td>{{ a.colunas|length }}</td>
+      <td>{{ a.criado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+      <td><a href="/amostras/{{ a.id }}">abrir</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhuma amostra ainda.</p>
+{% endif %}
+
+<h2>Análises recentes</h2>
+{% if analises_recentes %}
+<table>
+  <thead><tr><th>Amostra</th><th>Janela</th><th>Executada em</th><th></th></tr></thead>
+  <tbody>
+    {% for an in analises_recentes %}
+    <tr>
+      <td>{{ an.amostra.nome }}</td>
+      <td>
+        {% if an.limite_inferior or an.limite_superior %}
+          {{ an.limite_inferior or "?" }} — {{ an.limite_superior or "?" }}
+        {% else %}sem janela definida{% endif %}
+        {% if not an.consistente %}<span class="badge badge-conflito">conflito</span>{% endif %}
+      </td>
+      <td>{{ an.executado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+      <td><a href="/analises/{{ an.id }}">abrir</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhuma análise rodada ainda.</p>
+{% endif %}
+{% endblock %}

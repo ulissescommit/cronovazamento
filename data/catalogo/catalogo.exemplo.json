@@ -1,0 +1,10 @@
+[
+  {
+    "id": "exemplo-cadastro-clientes-v1",
+    "nome": "Exemplo: cadastro de clientes (loja fictícia) v1",
+    "campos": ["CPF", "NOME_COMPLETO", "STATUS_OBITO", "EMAIL", "TELEFONE"],
+    "fonte_suspeita": "Sistema de CRM fictício usado apenas como exemplo",
+    "data_conhecida": null,
+    "observacoes": "Entrada de exemplo, substitua pelo seu próprio catálogo de pesquisa."
+  }
+]

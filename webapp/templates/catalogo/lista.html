@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Catálogo — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Catálogo de vazamentos/bases conhecidas</h1>
+<p class="subtitulo">Cada entrada guarda a assinatura de campos de um vazamento ou sistema já identificado — usada para estimar a origem de amostras desconhecidas por proximidade de schema.</p>
+
+<div class="card">
+  <h3>Adicionar entrada manualmente</h3>
+  <form method="post" action="/catalogo">
+    <div class="grade">
+      <div>
+        <label for="identificador">Identificador (slug único)</label>
+        <input type="text" id="identificador" name="identificador" required placeholder="ex.: loja-x-2022">
+      </div>
+      <div>
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" name="nome" required>
+      </div>
+      <div>
+        <label for="fonte_suspeita">Fonte suspeita (opcional)</label>
+        <input type="text" id="fonte_suspeita" name="fonte_suspeita">
+      </div>
+      <div>
+        <label for="data_conhecida">Data conhecida (opcional)</label>
+        <input type="text" id="data_conhecida" name="data_conhecida" placeholder="AAAA-MM-DD">
+      </div>
+    </div>
+    <label for="campos">Campos (um por linha, ou separados por vírgula)</label>
+    <textarea id="campos" name="campos" required placeholder="CPF&#10;NOME_COMPLETO&#10;EMAIL"></textarea>
+    <label for="observacoes">Observações (opcional)</label>
+    <textarea id="observacoes" name="observacoes"></textarea>
+    <button type="submit">Adicionar ao catálogo</button>
+  </form>
+</div>
+
+{% if entradas %}
+<table>
+  <thead><tr><th>Nome</th><th>Identificador</th><th>Campos</th><th>Fonte suspeita</th><th></th></tr></thead>
+  <tbody>
+    {% for e in entradas %}
+    <tr>
+      <td>{{ e.nome }}</td>
+      <td class="mono">{{ e.identificador }}</td>
+      <td>{{ e.campos|length }}</td>
+      <td>{{ e.fonte_suspeita or "—" }}</td>
+      <td>
+        <form method="post" action="/catalogo/{{ e.id }}/excluir" style="display:inline;">
+          <button type="submit" class="perigo" style="padding:0.25rem 0.6rem;font-size:0.78rem;">excluir</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Catálogo vazio.</p>
+{% endif %}
+{% endblock %}

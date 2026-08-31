@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}Análises — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Histórico de análises</h1>
+
+{% if analises %}
+<table>
+  <thead><tr><th>Amostra</th><th>Janela estimada</th><th>Executada em</th><th></th></tr></thead>
+  <tbody>
+    {% for an in analises %}
+    <tr>
+      <td>{{ an.amostra.nome }}</td>
+      <td>
+        {% if an.limite_inferior or an.limite_superior %}
+          {{ an.limite_inferior or "?" }} — {{ an.limite_superior or "?" }}
+        {% else %}sem janela definida{% endif %}
+        {% if not an.consistente %}<span class="badge badge-conflito">conflito</span>{% endif %}
+      </td>
+      <td>{{ an.executado_em.strftime("%d/%m/%Y %H:%M") }}</td>
+      <td><a href="/analises/{{ an.id }}">abrir</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="vazio">Nenhuma análise rodada ainda.</p>
+{% endif %}
+{% endblock %}

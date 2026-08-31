@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}{{ amostra.nome }} — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>{{ amostra.nome }}</h1>
+<p class="subtitulo">
+  {{ amostra.colunas|length }} coluna(s) · {{ n_linhas }} linha(s) ·
+  enviada em {{ amostra.criado_em.strftime("%d/%m/%Y %H:%M") }}
+</p>
+
+<h2>Colunas detectadas</h2>
+<p class="mono">{{ amostra.colunas|join(", ") }}</p>
+
+<h2>Mapeamento de campos</h2>
+<p class="subtitulo">Diga qual coluna da amostra corresponde a cada campo lógico que o motor entende. Deixe em branco o que não se aplica.</p>
+
+<form method="post" action="/amostras/{{ amostra.id }}/mapeamento">
+  <div class="grade">
+    {% for campo, rotulo in campos_logicos %}
+    <div>
+      <label for="campo_{{ campo }}">{{ rotulo }}</label>
+      <select id="campo_{{ campo }}" name="{{ campo }}">
+        <option value="">— não mapeado —</option>
+        {% for coluna in amostra.colunas %}
+        <option value="{{ coluna }}" {% if mapeamento.get(campo) == coluna %}selected{% endif %}>{{ coluna }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endfor %}
+  </div>
+  <button type="submit">Salvar mapeamento</button>
+</form>
+
+<h2>Próximo passo</h2>
+<a class="botao" href="/analises/nova?amostra_id={{ amostra.id }}">rodar análise</a>
+<a class="botao secundario" href="/catalogo/de-amostra/{{ amostra.id }}">cadastrar schema no catálogo</a>
+{% endblock %}

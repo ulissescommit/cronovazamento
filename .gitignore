@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+*.db
+.env
+
+# artefato gerado, não faz parte do código-fonte
+cronovazamento_projeto.pdf
+
+# amostras e referências reais NUNCA devem ir para controle de versão —
+# só os arquivos *.exemplo.* (sintéticos) em data/ são seguros para commitar.
+/data/amostras/*
+!/data/amostras/*.exemplo.csv
+/data/referencias/*
+!/data/referencias/*.exemplo.json
+/data/catalogo/*.json
+!/data/catalogo/*.exemplo.json

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}cronovazamento{% endblock %}</title>
+  <link rel="stylesheet" href="/static/estilo.css">
+  <script src="/static/htmx.min.js"></script>
+</head>
+<body>
+  <div class="topo">
+    <span class="marca">cronovazamento</span>
+    <nav>
+      <a href="/">painel</a>
+      <a href="/amostras">amostras</a>
+      <a href="/eventos/pessoa">eventos</a>
+      <a href="/catalogo">catálogo</a>
+      <a href="/analises">análises</a>
+    </nav>
+  </div>
+  <main>
+    {% block conteudo %}{% endblock %}
+  </main>
+</body>
+</html>

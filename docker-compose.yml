@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cronovazamento}
+      POSTGRES_USER: ${POSTGRES_USER:-cronovazamento}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cronovazamento}
+    volumes:
+      - cronovazamento_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cronovazamento}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-cronovazamento}:${POSTGRES_PASSWORD:-cronovazamento}@db:5432/${POSTGRES_DB:-cronovazamento}
+    ports:
+      # só localhost — nunca 0.0.0.0. Dado de vazamento não deve ficar
+      # exposto na internet; acesse por túnel SSH quando isso rodar num VPS
+      # (ssh -L 8000:localhost:8000 <host>) ou direto em localhost:8000 na sua máquina.
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+volumes:
+  cronovazamento_pgdata:

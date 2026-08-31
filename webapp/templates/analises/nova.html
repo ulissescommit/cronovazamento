@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}Nova análise — cronovazamento{% endblock %}
+{% block conteudo %}
+<h1>Nova análise</h1>
+<p class="subtitulo">Amostra: <strong>{{ amostra.nome }}</strong> ({{ amostra.colunas|length }} colunas, {{ n_linhas }} linhas)</p>
+
+{% if not mapeamento %}
+<div class="aviso">
+  Essa amostra ainda não tem mapeamento de campos salvo — a análise pode não
+  gerar nenhuma evidência de registro. <a href="/amostras/{{ amostra.id }}">configurar mapeamento</a>.
+</div>
+{% endif %}
+
+<form method="post" action="/analises">
+  <input type="hidden" name="amostra_id" value="{{ amostra.id }}">
+
+  <fieldset>
+    <legend>Algoritmos de casamento de registro (pessoa/sócio/proprietário)</legend>
+    {% for alg in algoritmos_string %}
+    <label class="inline">
+      <input type="checkbox" name="algoritmo_registro" value="{{ alg.id }}" {% if alg.id == "exato" %}checked{% endif %}>
+      {{ alg.nome }}
+    </label>
+    <br>
+    <span class="subtitulo" style="font-size:0.8rem;">{{ alg.descricao }}</span>
+    {% endfor %}
+    <label for="limiar">Limiar mínimo para casamento fuzzy (0–1)</label>
+    <input type="number" id="limiar" name="limiar" min="0" max="1" step="0.01" value="0.85" style="max-width:8rem;">
+  </fieldset>
+
+  <fieldset>
+    <legend>Algoritmos de fingerprint de origem (schema x catálogo)</legend>
+    {% for alg in algoritmos_conjunto %}
+    <label class="inline">
+      <input type="checkbox" name="algoritmo_origem" value="{{ alg.id }}" checked>
+      {{ alg.nome }}
+    </label>
+    <br>
+    <span class="subtitulo" style="font-size:0.8rem;">{{ alg.descricao }}</span>
+    {% endfor %}
+  </fieldset>
+
+  <button type="submit">Rodar análise</button>
+</form>
+{% endblock %}
